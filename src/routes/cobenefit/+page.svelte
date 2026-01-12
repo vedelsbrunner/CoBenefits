@@ -156,14 +156,32 @@
         // console.log("coben waffle data",aggregationPerCapitaPerBenefit);
         // console.log("coben type", coBenefit);
 
-        //LADAveragedData = await getTableData(getSefForOneCoBenefitAveragedByLAD(coBenefit))
-        console.log("data", LADAveragedData);
+        LADAveragedData = await getTableData(getSefForOneCoBenefitAveragedByLAD(coBenefit))
+        console.log("LADAveragedData", LADAveragedData);
         totalBenefits = await getTableData(getTotalAggregation())
         totalBenefitsValue = totalBenefits[0].total_value
 
-        SEF.forEach(SE => {
-            SEFData[SE] = +SEFData[SE];
-        })
+        // Ensure numeric SE values for plotting (DuckDB may return strings for some columns).
+        if (Array.isArray(SEFData)) {
+            SEFData.forEach(d => {
+                if (d && d.SE !== null && d.SE !== undefined && d.SE !== '' && !Number.isNaN(+d.SE)) {
+                    d.SE = +d.SE;
+                }
+                if (d && d.total !== null && d.total !== undefined && d.total !== '' && !Number.isNaN(+d.total)) {
+                    d.total = +d.total;
+                }
+            })
+        }
+        if (Array.isArray(LADAveragedData)) {
+            LADAveragedData.forEach(d => {
+                if (d && d.SE !== null && d.SE !== undefined && d.SE !== '' && !Number.isNaN(+d.SE)) {
+                    d.SE = +d.SE;
+                }
+                if (d && d.total !== null && d.total !== undefined && d.total !== '' && !Number.isNaN(+d.total)) {
+                    d.total = +d.total;
+                }
+            })
+        }
 
         totalValue = (d3.sum(fullData, d => d.total / 1000)).toLocaleString('en-US', {
             minimumFractionDigits: 2,
@@ -338,6 +356,11 @@
     }
 
     function renderSEFPlot() {
+        if (!Array.isArray(LADAveragedData)) {
+            console.warn("Skipping SEF plots: LADAveragedData not loaded", LADAveragedData);
+            return;
+        }
+
         const nationCode = d => d.LAD.startsWith("S") ? "S"
             : d.LAD.startsWith("N") ? "N"
                 : d.LAD.startsWith("E") ? "E"
@@ -367,7 +390,7 @@
                 const fullLevels = labelLookup
                     ? Object.keys(labelLookup).map(Number)
                     : LADAveragedData.filter(d => d["SEFMAME"] == sef).map(d => d.SE);
-                    
+
 
                 plot = Plot.plot({
                     style: {fontSize: "14px", textAnchor: "middle", fill: '#333'},
@@ -639,7 +662,7 @@
                             {:else}
                                 <div class="waffle-caption">National costs</div>
                             {/if}
-                        
+
                         </div>
                         <div class="waffle-stat">
                             <div class="waffle-value-container">
@@ -659,7 +682,7 @@
                                 <div class="waffle-caption">Per capita costs</div>
                             {/if}
                         </div>
-                        
+
                         <div class="waffle-stat">
                             <div class="waffle-value-container">
                                 <img class="aggregation-icon-small" src="{percentage}" alt="icon"/>
@@ -673,7 +696,7 @@
                             <div class="waffle-caption">Contribution to national benefits</div>
                         </div>
                     </div>
-                    
+
                 </div>
                 <h3 class="component-title"> Share of total benefits </h3>
                 <div class="waffle-el" bind:this={waffleEl}></div>
