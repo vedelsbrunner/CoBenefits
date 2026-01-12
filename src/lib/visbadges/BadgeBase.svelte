@@ -19,10 +19,13 @@
   export let tooltipPlacement: TooltipPlacement = 'top';
   export let interactive: boolean = true;
 
-  const sizeMap: Record<ChipSize, { py: number; px: number; font: number; icon: number; hideLabel: boolean }> = {
-    small: { py: 0, px: 0, font: 12, icon: 22, hideLabel: true },
-    medium: { py: 2, px: 8, font: 14, icon: 16, hideLabel: false },
-    large: { py: 1, px: 5, font: 18, icon: 24, hideLabel: false },
+  const sizeMap: Record<
+    ChipSize,
+    { py: number; pxLeft: number; pxRight: number; font: number; icon: number; hideLabel: boolean }
+  > = {
+    small: { py: 0, pxLeft: 1, pxRight: 0, font: 12, icon: 22, hideLabel: true },
+    medium: { py: 3, pxLeft: 1, pxRight: 5, font: 14, icon: 17, hideLabel: false },
+    large: { py: 4, pxLeft: 1, pxRight: 5, font: 18, icon: 24, hideLabel: false },
   };
 
   function resolveIconName(key: IconKey): string {
@@ -65,7 +68,7 @@
     <span slot="trigger" class="wrap">
       <span
         class="chip {variant} {ui.hideLabel ? 'mini' : ''} {interactive ? 'interactive' : ''}"
-        style="--pad-y:{ui.py}px; --pad-x:{ui.px}px; --font:{ui.font}px; --icon:{ui.icon}px; --chip-border:{tokens.border}; --chip-fg:{tokens.fg}; --chip-bg:{tokens.bg}; --chip-weight:{fontWeight};"
+        style="--pad-y:{ui.py}px; --pad-l:{ui.pxLeft}px; --pad-r:{ui.pxRight}px; --font:{ui.font}px; --icon:{ui.icon}px; --chip-border:{tokens.border}; --chip-fg:{tokens.fg}; --chip-bg:{tokens.bg}; --chip-weight:{fontWeight};"
         tabindex="0"
         role="note"
         aria-label={label}
@@ -102,7 +105,7 @@
   <span class="wrap">
     <span
       class="chip {variant} {ui.hideLabel ? 'mini' : ''} {interactive ? 'interactive' : ''}"
-      style="--pad-y:{ui.py}px; --pad-x:{ui.px}px; --font:{ui.font}px; --icon:{ui.icon}px; --chip-border:{tokens.border}; --chip-fg:{tokens.fg}; --chip-bg:{tokens.bg}; --chip-weight:{fontWeight};"
+      style="--pad-y:{ui.py}px; --pad-l:{ui.pxLeft}px; --pad-r:{ui.pxRight}px; --font:{ui.font}px; --icon:{ui.icon}px; --chip-border:{tokens.border}; --chip-fg:{tokens.fg}; --chip-bg:{tokens.bg}; --chip-weight:{fontWeight};"
       tabindex="0"
       role="note"
       aria-label={label}
@@ -143,7 +146,7 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: var(--pad-y) var(--pad-x);
+    padding: var(--pad-y) var(--pad-r) var(--pad-y) var(--pad-l);
     box-sizing: border-box;
     border-radius: 999px;
     font-weight: var(--chip-weight, 700);

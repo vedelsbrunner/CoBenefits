@@ -43,7 +43,7 @@
 
     import NavigationBar from "$lib/components/NavigationBar.svelte";
     import BinaryBadge from '$lib/visbadges/BinaryBadge.svelte';
-    import { MAJOR_FINDING_BADGE } from '$lib/visbadges/majorFinding';
+    import { BACKGROUND_READING_BADGE, MAJOR_FINDING_BADGE, OPEN_DATA_BADGE } from '$lib/visbadges/badges';
 
     import total from '$lib/icons/total.png';
     import per_capita from '$lib/icons/per_capita.png';
@@ -670,6 +670,29 @@
                     <p class='definition'> {coBenefitDef} </p>
                 </div>
 
+                <div class="header-badges">
+                    <BinaryBadge
+                        badge={BACKGROUND_READING_BADGE}
+                        size="medium"
+                        variant="filled"
+                        leftIconKey="iconIntent"
+                        rightIconKey="none"
+                        fontWeight={500}
+                        tooltipPlacement="top"
+                        interactive={true}
+                    />
+                    <BinaryBadge
+                        badge={OPEN_DATA_BADGE}
+                        size="medium"
+                        variant="filled"
+                        leftIconKey="iconIntent"
+                        rightIconKey="none"
+                        fontWeight={500}
+                        tooltipPlacement="top"
+                        interactive={true}
+                    />
+                </div>
+
             </div>
             <div class="header-waffle-wrapper">
                 <div class="waffle-label">
@@ -1123,6 +1146,14 @@
     .header-text {
         max-width: 60%;
         height: 100%;
+    }
+
+    .header-badges {
+        margin-top: 10px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
     }
 
     .page-subtitle {

@@ -4,7 +4,7 @@
 
     import MapCanvas from "$lib/components/old/MapCanvas.svelte";
     import BinaryBadge from '$lib/visbadges/BinaryBadge.svelte';
-    import { MAJOR_FINDING_BADGE } from '$lib/visbadges/majorFinding';
+    import { MAJOR_FINDING_BADGE } from '$lib/visbadges/badges';
 
     let element: HTMLElement
     let plot: HTMLElement
@@ -25,7 +25,7 @@
 
     const zones = data.UKZones;
 
-    // Keep this badge definition in one place (see $lib/visbadges/majorFinding).
+    // Keep this badge definition in one place (see $lib/visbadges/badges).
 
     // TODO: compute extent of variables
     $: {
