@@ -4,6 +4,7 @@
     import {onMount, onDestroy} from 'svelte';
     import {writable} from 'svelte/store';
     import {base} from "$app/paths";
+    import { goto } from '$app/navigation';
     import posthog from 'posthog-js';
 
     import ChartSkeleton from "$lib/components/ChartSkeleton.svelte";
@@ -547,7 +548,7 @@
 
                         // let text = event.target.textContent;
                         // let cb = COBENEFS.find((d) => d.id == text)
-                        window.open(`${base}/location?location=${lad}`, '_blank').focus();
+                        goto(`${base}/location?location=${lad}`);
                     })
 
             }

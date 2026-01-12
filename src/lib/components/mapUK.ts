@@ -357,7 +357,7 @@ export class MapUK {
 		this.map.on('click', 'fill', (e) => {
 			let feature = e.features[0];
 			let lad = feature.properties.LAD22CD;
-			window.open(`${base}/location?location=${lad}`, '_blank');
+			window.location.assign(`${base}/location?location=${lad}`);
 		});
 	}
 

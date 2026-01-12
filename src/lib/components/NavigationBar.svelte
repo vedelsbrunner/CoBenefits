@@ -60,7 +60,6 @@ async function goToSection(id: string) {
             data-sveltekit-reload
             style="--cobenef-color: {COBENEFS_SCALE(coBenef.id)}"
             class:selected={$page.url.searchParams.get('cobenefit') === coBenef.id}
-            target="_blank"
           >
             {coBenef.label}
           </a>
