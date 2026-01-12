@@ -3,6 +3,8 @@
     import {onMount} from 'svelte';
     import {AVERAGE_COLOR} from "../globals";
     import {browser} from '$app/environment';
+    import { base } from '$app/paths';
+    import participationSheetUrl from './Participation_Information_Sheet.pdf?url';
     import posthog from 'posthog-js';
 
     let showBanner = false;
@@ -104,7 +106,7 @@
     <div class="cookie-banner">
       <div class="banner-content">
         <p>The atlas would like to anonymously log your interactive activity (e.g., session duration, page navigation, and interaction with visualizations) for research purposes. Our goal is to create a better user experience, develop useful Atlas features, and advance information visualization techniques. <strong>Do you consent?</strong></p>
-        <a href="/src/routes/Participation_Information_Sheet.pdf" target="_blank" rel="noopener noreferrer">Learn how we use your data</a>.
+        <a href="{participationSheetUrl}" target="_blank" rel="noopener noreferrer">Learn how we use your data</a>.
         
           <div class="cookie-buttons">
             <button class="accept" on:click={acceptCookies}>Accept</button>
@@ -139,7 +141,7 @@
   <svelte:head>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-GGZ403XD90"></script>
     <title>UK Co-Benefits Atlas</title>
-    <link rel="icon" href="/atlas-logos/logo_new_mini.png" type="image/png" />
+    <link rel="icon" href="{base}/atlas-logos/logo_new_mini.png" type="image/png" />
     </svelte:head>
   
   <style>
