@@ -2,7 +2,8 @@ import type { BadgeData, ChipColor } from './types';
 
 export function mapIntentToColor(intent?: string): ChipColor {
   if (!intent) return 'grey';
-  const normalized = intent.toUpperCase();
+  // Normalize to avoid invisible whitespace / weird unicode causing unexpected fallbacks to grey.
+  const normalized = intent.normalize('NFKC').replace(/\s+/g, ' ').trim().toUpperCase();
   switch (normalized) {
     case 'CONFIRMATION':
       return 'success';

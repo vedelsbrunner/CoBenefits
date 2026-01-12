@@ -15,9 +15,9 @@
   export let chipColor: ChipColor = 'grey';
 
   const sizeMap: Record<ChipSize, { py: number; px: number; font: number; icon: number; hideLabel: boolean }> = {
-    small: { py: 6, px: 5, font: 12, icon: 22, hideLabel: true },
-    medium: { py: 1, px: 4, font: 13, icon: 22, hideLabel: false },
-    large: { py: 9, px: 9, font: 14, icon: 24, hideLabel: false },
+    small: { py: 0, px: 0, font: 12, icon: 22, hideLabel: true },
+    medium: { py: 1, px: 3, font: 14, icon: 22, hideLabel: false },
+    large: { py: 1, px: 5, font: 18, icon: 24, hideLabel: false },
   };
 
   function resolveIconName(key: IconKey): string {
@@ -41,7 +41,16 @@
     secondary: { border: 'rgba(236, 72, 153, 0.40)', fg: 'rgb(131, 24, 67)', bg: 'rgba(236, 72, 153, 0.18)' },
   };
 
-  $: tokens = colorTokens[chipColor] ?? colorTokens.grey;
+  $: baseTokens = colorTokens[chipColor] ?? colorTokens.grey;
+  // In outlined chips the background is transparent, so a "white" foreground (used for filled black)
+  // becomes invisible. Keep mono black readable by switching to a dark foreground in outlined mode.
+  $: tokens =
+    variant === 'outlined'
+      ? {
+          ...baseTokens,
+          fg: chipColor === 'black' ? '#111827' : baseTokens.fg
+        }
+      : baseTokens;
 </script>
 
 <span class="wrap">

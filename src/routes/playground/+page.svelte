@@ -1,6 +1,6 @@
 <script lang="ts">
   import NavigationBar from '$lib/components/NavigationBar.svelte';
-  import { computeChipColor } from '$lib/visbadges/badgeUtils';
+  import { computeChipColor, mapIntentToColor } from '$lib/visbadges/badgeUtils';
   import BinaryBadge from '$lib/visbadges/BinaryBadge.svelte';
 
   import type { ChipColor, ChipSize, ChipVariant, IconKey, BadgeData } from '$lib/visbadges/types';
@@ -135,11 +135,14 @@
           {variant}
           {leftIconKey}
           {rightIconKey}
-          chipColor={chipColorFor(badge)}
+          {colorMode}
+          {baseColor}
         />
         {#if showDebug}
           <div class="debug">
-            chipColor=<strong>{chipColorFor(badge)}</strong> · intent=<strong>{badge.intent}</strong> · type=<strong>{badge.type}</strong>
+            mode=<strong>{colorMode}</strong> · baseColor=<strong>{baseColor}</strong> · chipColor=<strong>{chipColorFor(badge)}</strong>
+            · rawIntent=<strong>{JSON.stringify(badge.intent)}</strong> · mappedIntent=<strong>{mapIntentToColor(badge.intent)}</strong>
+            · type=<strong>{badge.type}</strong>
           </div>
         {/if}
       </div>
