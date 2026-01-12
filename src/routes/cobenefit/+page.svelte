@@ -6,6 +6,7 @@
     import {base} from "$app/paths";
     import posthog from 'posthog-js';
 
+    import ChartSkeleton from "$lib/components/ChartSkeleton.svelte";
 
     import {MapUK} from "$lib/components/mapUK";
     import {
@@ -25,7 +26,7 @@
         SEF_SCALE,
         DEFINITIONS,
         SE_FACTORS,
-        SEF_LEVEL_LABELS, removeSpinner, addSpinner, convertToCSV, downloadCSV
+        SEF_LEVEL_LABELS, convertToCSV, downloadCSV
 
     } from "../../globals";
     import {
@@ -69,22 +70,20 @@
     let aggregationPerCapitaPerBenefit;
     let totalBenefits;
     let totalBenefitsValue;
-    let dataLoaded = false;
     let coBenefit_percapita;
 
     let map: MapUK;
+    let mapInitialized = false;
 
     let mapDiv: HTMLElement;
     let mapLegendDiv: HTMLElement;
 
-    loadData().then(() => {
-        let colorRange = JSON.parse(JSON.stringify(COBENEFS_SCALE2(coBenefit)))
-        colorRange.shift()
-        colorRange = colorRange.reverse()
-
-        map = new MapUK(fullData, "LAD", mapDiv, "total", true, "LAD", false, colorRange);
-        map.initMap();
-    });
+    // Per-chart loading flags (avoid a blocking full-page spinner)
+    let loadingWaffle = true;
+    let loadingOverviewCharts = true;
+    let loadingMap = true;
+    let loadingSEFCharts = true;
+    let loadingHeaderStats = true;
 
     let icon = getIconFromCobenef(coBenefit)
 
@@ -140,56 +139,67 @@
     })
 
 
-    async function loadData() {
-        fullData = await getTableData(getTotalPerOneCoBenefit(coBenefit))
-        console.log("FULLDATA", fullData);
-        SEFData = await getTableData(getSefForOneCoBenefit(coBenefit))
-        console.log("SEFDATA", SEFData);
-        aggregationPerBenefit = await getTableData(getAggregationPerBenefit());
-        aggregationPerBenefit = aggregationPerBenefit.sort((a, b) => b.total - a.total);
+    async function loadAllData() {
+        // Make sure DuckDB is initialized once (each getTableData call calls initDB otherwise).
+        await initDB();
 
-        aggregationPerCapitaPerBenefit = await getTableData(getAggregationPerCapitaPerBenefit());
-        aggregationPerCapitaPerBenefit = aggregationPerCapitaPerBenefit.sort((a, b) => b.total_value - a.total_value);
-        const matched = aggregationPerCapitaPerBenefit.find(d => d.co_benefit_type === coBenefit);
-        coBenefit_percapita = matched ? matched.value_per_capita : null;
+        // Overview charts (time bars + distribution histogram) + map are based on fullData.
+        void (async () => {
+            try {
+                fullData = await getTableData(getTotalPerOneCoBenefit(coBenefit));
+                totalValue = (d3.sum(fullData, d => d.total / 1000)).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            } finally {
+                loadingOverviewCharts = false;
+            }
+        })();
 
-        // console.log("coben waffle data",aggregationPerCapitaPerBenefit);
-        // console.log("coben type", coBenefit);
+        // Header stats depend on these aggregations.
+        void (async () => {
+            try {
+                totalBenefits = await getTableData(getTotalAggregation());
+                totalBenefitsValue = totalBenefits?.[0]?.total_value;
 
-        LADAveragedData = await getTableData(getSefForOneCoBenefitAveragedByLAD(coBenefit))
-        console.log("LADAveragedData", LADAveragedData);
-        totalBenefits = await getTableData(getTotalAggregation())
-        totalBenefitsValue = totalBenefits[0].total_value
+                aggregationPerCapitaPerBenefit = await getTableData(getAggregationPerCapitaPerBenefit());
+                aggregationPerCapitaPerBenefit = aggregationPerCapitaPerBenefit.sort((a, b) => b.total_value - a.total_value);
+                const matched = aggregationPerCapitaPerBenefit.find(d => d.co_benefit_type === coBenefit);
+                coBenefit_percapita = matched ? matched.value_per_capita : null;
+            } finally {
+                loadingHeaderStats = false;
+            }
+        })();
 
-        // Ensure numeric SE values for plotting (DuckDB may return strings for some columns).
-        if (Array.isArray(SEFData)) {
-            SEFData.forEach(d => {
-                if (d && d.SE !== null && d.SE !== undefined && d.SE !== '' && !Number.isNaN(+d.SE)) {
-                    d.SE = +d.SE;
+        // Waffle depends on aggregationPerBenefit only.
+        void (async () => {
+            try {
+                aggregationPerBenefit = await getTableData(getAggregationPerBenefit());
+                aggregationPerBenefit = aggregationPerBenefit.sort((a, b) => b.total - a.total);
+            } finally {
+                loadingWaffle = false;
+            }
+        })();
+
+        // SEF charts depend on the LAD-aggregated per-capita query.
+        void (async () => {
+            try {
+                LADAveragedData = await getTableData(getSefForOneCoBenefitAveragedByLAD(coBenefit));
+                // Ensure numeric SE values for plotting (DuckDB may return strings for some columns).
+                if (Array.isArray(LADAveragedData)) {
+                    LADAveragedData.forEach(d => {
+                        if (d && d.SE !== null && d.SE !== undefined && d.SE !== '' && !Number.isNaN(+d.SE)) {
+                            d.SE = +d.SE;
+                        }
+                        if (d && d.total !== null && d.total !== undefined && d.total !== '' && !Number.isNaN(+d.total)) {
+                            d.total = +d.total;
+                        }
+                    })
                 }
-                if (d && d.total !== null && d.total !== undefined && d.total !== '' && !Number.isNaN(+d.total)) {
-                    d.total = +d.total;
-                }
-            })
-        }
-        if (Array.isArray(LADAveragedData)) {
-            LADAveragedData.forEach(d => {
-                if (d && d.SE !== null && d.SE !== undefined && d.SE !== '' && !Number.isNaN(+d.SE)) {
-                    d.SE = +d.SE;
-                }
-                if (d && d.total !== null && d.total !== undefined && d.total !== '' && !Number.isNaN(+d.total)) {
-                    d.total = +d.total;
-                }
-            })
-        }
-
-        totalValue = (d3.sum(fullData, d => d.total / 1000)).toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-
-        dataLoaded = true;
-        removeSpinner(element);
+            } finally {
+                loadingSEFCharts = false;
+            }
+        })();
     }
 
     let waffleData = [];
@@ -546,18 +556,33 @@
         })
     }
 
-    $: if (height && dataLoaded) {
+    $: if (height && !loadingOverviewCharts && plot && plotDist) {
         plot?.firstChild?.remove();
+        plotDist?.firstChild?.remove();
         renderDistPlot();
         renderPlot();
+    }
+
+    $: if (!loadingWaffle && waffleEl) {
         renderWaffle(300, coBenefit);
     }
 
-    $: if (height && dataLoaded && selectedNation !== undefined) {
+    $: if (height && !loadingSEFCharts && selectedNation !== undefined) {
         Object.values(SEFPlot).forEach(sefPlot => {
-            sefPlot.firstChild?.remove();
+            sefPlot?.firstChild?.remove();
         });
         renderSEFPlot();
+    }
+
+    $: if (!mapInitialized && !loadingOverviewCharts && mapDiv && fullData) {
+        let colorRange = JSON.parse(JSON.stringify(COBENEFS_SCALE2(coBenefit)))
+        colorRange.shift()
+        colorRange = colorRange.reverse()
+
+        mapInitialized = true;
+        map = new MapUK(fullData, "LAD", mapDiv, "total", true, "LAD", false, colorRange);
+        map.initMap();
+        loadingMap = false;
     }
 
     $: textColor = COBENEFS_SCALE2(coBenefit)[0];
@@ -594,8 +619,7 @@
 
 
     onMount(() => {
-        addSpinner(element);
-
+        void loadAllData();
 
         document.querySelectorAll(".nation-button").forEach(button => {
             button.addEventListener("click", () => {
@@ -651,7 +675,7 @@
                             <div class="waffle-value-container">
                             <img class="aggregation-icon-small" src="{total}" alt="icon"/>
                             <div class="waffle-value">
-                                {#if totalValue}
+                                {#if !loadingHeaderStats && totalValue}
                                     <span class="waffle-big">£{totalValue.toLocaleString()}</span>
                                 {/if}
                                 <span class="small">billion</span>
@@ -668,7 +692,7 @@
                             <div class="waffle-value-container">
                                 <img class="aggregation-icon-small" src="{per_capita}" alt="icon"/>
                             <div class="waffle-value">
-                                {#if totalValue}
+                                {#if !loadingHeaderStats && totalValue}
                                     <span class="waffle-big">£{coBenefit_percapita.toLocaleString('en-US', {
                                         minimumFractionDigits: 2,
                                         maximumFractionDigits: 2
@@ -686,7 +710,7 @@
                         <div class="waffle-stat">
                             <div class="waffle-value-container">
                                 <img class="aggregation-icon-small" src="{percentage}" alt="icon"/>
-                            {#if totalValue}
+                            {#if !loadingHeaderStats && totalValue && totalBenefitsValue}
                                 <div class="waffle-value">
                                     <span class="waffle-big">{((totalValue / totalBenefitsValue) * 100).toFixed(2)}</span>
                                     <span class="small">%</span>
@@ -699,7 +723,12 @@
 
                 </div>
                 <h3 class="component-title"> Share of total benefits </h3>
-                <div class="waffle-el" bind:this={waffleEl}></div>
+                <div class="chart-shell" style="height: 220px;">
+                    {#if loadingWaffle}
+                        <ChartSkeleton height={220}/>
+                    {/if}
+                    <div class="waffle-el {loadingWaffle ? 'chart-hidden' : ''}" bind:this={waffleEl}></div>
+                </div>
                 <div class="waffle-bg" bind:this={waffleBgEl}></div>
             </div>
         </div>
@@ -754,7 +783,12 @@
                             <span class="tooltip-text">This chart uses total values. i.e. shows the total benefit/cost for all of the UK.</span>
                         </div>
                     </div>
-                    <div class="plot-bar" bind:this={plot}></div>
+                    <div class="chart-shell" style="height: 280px;">
+                        {#if loadingOverviewCharts}
+                            <ChartSkeleton height={280}/>
+                        {/if}
+                        <div class="plot-bar {loadingOverviewCharts ? 'chart-hidden' : ''}" bind:this={plot}></div>
+                    </div>
                     <!-- <p class="explanation">Each bar shows the total benefits obtain within the given period.</p> -->
 
                     <br>
@@ -786,8 +820,11 @@
                             <span class="tooltip-text">This chart uses total values. i.e. shows the total benefit/cost for all of the UK.</span>
                         </div>
                     </div>
-                    <div class="plot-bar" bind:this={plotDist}>
-
+                    <div class="chart-shell" style="height: 280px;">
+                        {#if loadingOverviewCharts}
+                            <ChartSkeleton height={280}/>
+                        {/if}
+                        <div class="plot-bar {loadingOverviewCharts ? 'chart-hidden' : ''}" bind:this={plotDist}></div>
                     </div>
                     <br>
                     <!-- <p class="explanation">``Bumps'' in the chart indicate </p> -->
@@ -818,7 +855,11 @@
                             {@html map.legend().outerHTML}
                         </div>
                     {/if}
-                    <div id="map" bind:this={mapDiv}>
+                    <div class="chart-shell" style="height: 600px;">
+                        {#if loadingMap}
+                            <ChartSkeleton height={600}/>
+                        {/if}
+                        <div id="map" class="{loadingMap ? 'chart-hidden' : ''}" bind:this={mapDiv}></div>
                     </div>
                 </div>
             </div>
@@ -893,7 +934,12 @@
                             <div class="plot-container">
                                 <h3 class="component-chart-title">{sef.label}</h3>
                                 <p class="component-chart-caption">{sef.def}</p>
-                                <div class="plot" bind:this={SEFPlot[sef.id]}></div>
+                                <div class="chart-shell" style="height: 260px;">
+                                    {#if loadingSEFCharts}
+                                        <ChartSkeleton height={260}/>
+                                    {/if}
+                                    <div class="plot {loadingSEFCharts ? 'chart-hidden' : ''}" bind:this={SEFPlot[sef.id]}></div>
+                                </div>
                             </div>
                         {/each}
                     </div>
@@ -906,6 +952,15 @@
 <Footer></Footer>
 
 <style>
+    .chart-shell {
+        position: relative;
+        width: 100%;
+    }
+
+    .chart-hidden {
+        visibility: hidden;
+    }
+
     #vis-block {
         display: flex;
         flex-direction: row;
