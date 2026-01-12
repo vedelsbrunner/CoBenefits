@@ -2,6 +2,8 @@
   import VisBadgeIcon from './icons/VisBadgeIcon.svelte';
   import { resolveIntentIconName, resolveScopeIconName } from './iconMappings';
   import type { BadgeAvatar, ChipColor, ChipSize, ChipVariant, IconKey } from './types';
+  import FlowbiteTooltip from '$lib/components/FlowbiteTooltip.svelte';
+  import type { TooltipPlacement } from '$lib/components/FlowbiteTooltip.svelte';
 
   export let label: string;
   export let description: string = '';
@@ -13,6 +15,9 @@
   export let leftIconKey: IconKey = 'iconIntent';
   export let rightIconKey: IconKey = 'none';
   export let chipColor: ChipColor = 'grey';
+  export let fontWeight: number = 700;
+  export let tooltipPlacement: TooltipPlacement = 'top';
+  export let interactive: boolean = true;
 
   const sizeMap: Record<ChipSize, { py: number; px: number; font: number; icon: number; hideLabel: boolean }> = {
     small: { py: 0, px: 0, font: 12, icon: 22, hideLabel: true },
@@ -55,43 +60,77 @@
       : baseTokens;
 </script>
 
-<span class="wrap">
-  <span
-    class="chip {variant} {ui.hideLabel ? 'mini' : ''}"
-    style="--pad-y:{ui.py}px; --pad-x:{ui.px}px; --font:{ui.font}px; --icon:{ui.icon}px; --chip-border:{tokens.border}; --chip-fg:{tokens.fg}; --chip-bg:{tokens.bg};"
-    tabindex="0"
-    role="note"
-    aria-label={label}
-  >
-    {#if leftIconKey === 'avatar' && avatar}
-      {#if avatar.type === 'letter'}
-        <span class="avatar">{avatar.value}</span>
-      {:else if avatar.type === 'image'}
-        <img class="avatar-img" src={avatar.value} alt="" />
-      {/if}
-    {:else if leftIconName}
-      <span class="icon left" aria-hidden="true">
-        <VisBadgeIcon name={leftIconName} size={ui.icon} />
+{#if description}
+  <FlowbiteTooltip placement={tooltipPlacement}>
+    <span slot="trigger" class="wrap">
+      <span
+        class="chip {variant} {ui.hideLabel ? 'mini' : ''} {interactive ? 'interactive' : ''}"
+        style="--pad-y:{ui.py}px; --pad-x:{ui.px}px; --font:{ui.font}px; --icon:{ui.icon}px; --chip-border:{tokens.border}; --chip-fg:{tokens.fg}; --chip-bg:{tokens.bg}; --chip-weight:{fontWeight};"
+        tabindex="0"
+        role="note"
+        aria-label={label}
+      >
+        {#if leftIconKey === 'avatar' && avatar}
+          {#if avatar.type === 'letter'}
+            <span class="avatar">{avatar.value}</span>
+          {:else if avatar.type === 'image'}
+            <img class="avatar-img" src={avatar.value} alt="" />
+          {/if}
+        {:else if leftIconName}
+          <span class="icon left" aria-hidden="true">
+            <VisBadgeIcon name={leftIconName} size={ui.icon} />
+          </span>
+        {/if}
+
+        {#if !ui.hideLabel}
+          <span class="label">{label}</span>
+        {/if}
+
+        {#if rightIconName}
+          <span class="icon right" aria-hidden="true">
+            <VisBadgeIcon name={rightIconName} size={ui.icon} />
+          </span>
+        {/if}
       </span>
-    {/if}
+    </span>
 
-    {#if !ui.hideLabel}
-      <span class="label">{label}</span>
-    {/if}
-
-    {#if rightIconName}
-      <span class="icon right" aria-hidden="true">
-        <VisBadgeIcon name={rightIconName} size={ui.icon} />
-      </span>
-    {/if}
-  </span>
-
-  {#if description}
-    <span class="tooltip" role="tooltip">
+    <span slot="content">
       {description}
     </span>
-  {/if}
-</span>
+  </FlowbiteTooltip>
+{:else}
+  <span class="wrap">
+    <span
+      class="chip {variant} {ui.hideLabel ? 'mini' : ''} {interactive ? 'interactive' : ''}"
+      style="--pad-y:{ui.py}px; --pad-x:{ui.px}px; --font:{ui.font}px; --icon:{ui.icon}px; --chip-border:{tokens.border}; --chip-fg:{tokens.fg}; --chip-bg:{tokens.bg}; --chip-weight:{fontWeight};"
+      tabindex="0"
+      role="note"
+      aria-label={label}
+    >
+      {#if leftIconKey === 'avatar' && avatar}
+        {#if avatar.type === 'letter'}
+          <span class="avatar">{avatar.value}</span>
+        {:else if avatar.type === 'image'}
+          <img class="avatar-img" src={avatar.value} alt="" />
+        {/if}
+      {:else if leftIconName}
+        <span class="icon left" aria-hidden="true">
+          <VisBadgeIcon name={leftIconName} size={ui.icon} />
+        </span>
+      {/if}
+
+      {#if !ui.hideLabel}
+        <span class="label">{label}</span>
+      {/if}
+
+      {#if rightIconName}
+        <span class="icon right" aria-hidden="true">
+          <VisBadgeIcon name={rightIconName} size={ui.icon} />
+        </span>
+      {/if}
+    </span>
+  </span>
+{/if}
 
 <style>
   .wrap {
@@ -107,7 +146,7 @@
     padding: var(--pad-y) var(--pad-x);
     box-sizing: border-box;
     border-radius: 999px;
-    font-weight: 700;
+    font-weight: var(--chip-weight, 700);
     font-size: var(--font);
     line-height: 1;
     user-select: none;
@@ -116,9 +155,11 @@
     border: 1px solid var(--chip-border, rgba(17, 24, 39, 0.16));
     color: var(--chip-fg, #111827);
     background: var(--chip-bg, rgba(255, 255, 255, 0.92));
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    box-shadow: 0 1px 0 rgba(17, 24, 39, 0.04);
+    /* No glass/blur by default (cleaner + predictable over charts). */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+    transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
   }
 
   .chip.filled {
@@ -132,6 +173,17 @@
 
   .chip:focus-visible {
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+  }
+
+  .chip.interactive {
+    cursor: pointer;
+  }
+
+  .chip.interactive:hover,
+  .chip.interactive:focus-visible {
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 0 0 3px var(--chip-border, rgba(17, 24, 39, 0.18)), 0 10px 20px rgba(17, 24, 39, 0.18);
+    filter: saturate(1.05);
   }
 
   .icon {
@@ -176,31 +228,6 @@
 
   /* Colors are set via CSS variables inline (keeps dynamic coloring reliable). */
 
-  .tooltip {
-    position: absolute;
-    left: 0;
-    top: calc(100% + 10px);
-    z-index: 30;
-    width: min(360px, 70vw);
-    padding: 10px 12px;
-    border-radius: 12px;
-    border: 1px solid rgba(17, 24, 39, 0.12);
-    background: rgba(255, 255, 255, 0.98);
-    box-shadow: 0 10px 30px rgba(17, 24, 39, 0.12);
-    color: rgba(17, 24, 39, 0.85);
-    font-size: 13px;
-    line-height: 1.35;
-
-    opacity: 0;
-    transform: translateY(-6px);
-    pointer-events: none;
-    transition: opacity 140ms ease, transform 140ms ease;
-  }
-
-  .wrap:hover .tooltip,
-  .wrap:focus-within .tooltip {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  /* Tooltip is handled by FlowbiteTooltip. */
 </style>
 

@@ -798,6 +798,9 @@
                                 variant="filled"
                                 leftIconKey="iconIntent"
                                 rightIconKey="none"
+                                fontWeight={500}
+                                tooltipPlacement="top"
+                                interactive={true}
                             />
                         </div>
                     </div>
@@ -976,21 +979,6 @@
         z-index: 20;
         pointer-events: auto;
         opacity: 1;
-    }
-
-    /* Major Finding overlay: white text/icon, not bold, no blur/glass */
-    .major-finding-badge :global(.chip),
-    .major-finding-badge :global(.chip.filled),
-    .major-finding-badge :global(.chip.outlined) {
-        /* Material UI green[600] */
-        background: #43A047 !important;
-        background-color: #43A047 !important;
-        border-color: #43A047 !important;
-        color: #ffffff !important;
-        font-weight: 500 !important;
-        box-shadow: none !important;
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
     }
 
     .chart-hidden {
