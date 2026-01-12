@@ -3,6 +3,8 @@
     import * as Plot from "@observablehq/plot";
 
     import MapCanvas from "$lib/components/old/MapCanvas.svelte";
+    import BinaryBadge from '$lib/visbadges/BinaryBadge.svelte';
+    import { MAJOR_FINDING_BADGE } from '$lib/visbadges/majorFinding';
 
     let element: HTMLElement
     let plot: HTMLElement
@@ -22,6 +24,8 @@
     const dataPerCb = data.dataPerCb;
 
     const zones = data.UKZones;
+
+    // Keep this badge definition in one place (see $lib/visbadges/majorFinding).
 
     // TODO: compute extent of variables
     $: {
@@ -160,7 +164,17 @@
         <input type="radio" on:change={onChange} name="visType" value="distribution">
         <label for="javascript">Distribution</label>
 
-        <div class="plot" bind:this={plot}>
+        <div class="chart-wrap">
+            <div class="plot" bind:this={plot}></div>
+            <div class="major-finding">
+                <BinaryBadge
+                    badge={MAJOR_FINDING_BADGE}
+                    size="medium"
+                    variant="filled"
+                    leftIconKey="iconIntent"
+                    rightIconKey="none"
+                />
+            </div>
         </div>
     </div>
 
@@ -194,5 +208,33 @@
 
         width: 97vw;
         /*height: 50vh;*/
+    }
+
+    .chart-wrap {
+        position: relative;
+    }
+
+    .major-finding {
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        z-index: 5;
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* Major Finding overlay: white text/icon, not bold, no blur/glass */
+    .major-finding :global(.chip),
+    .major-finding :global(.chip.filled),
+    .major-finding :global(.chip.outlined) {
+        /* Material UI green[600] */
+        background: #43A047 !important;
+        background-color: #43A047 !important;
+        border-color: #43A047 !important;
+        color: #ffffff !important;
+        font-weight: 500 !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
     }
 </style>

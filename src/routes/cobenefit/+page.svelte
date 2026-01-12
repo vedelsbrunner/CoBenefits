@@ -42,6 +42,8 @@
     } from "$lib/duckdb";
 
     import NavigationBar from "$lib/components/NavigationBar.svelte";
+    import BinaryBadge from '$lib/visbadges/BinaryBadge.svelte';
+    import { MAJOR_FINDING_BADGE } from '$lib/visbadges/majorFinding';
 
     import total from '$lib/icons/total.png';
     import per_capita from '$lib/icons/per_capita.png';
@@ -789,6 +791,15 @@
                             <ChartSkeleton height={280}/>
                         {/if}
                         <div class="plot-bar {loadingOverviewCharts ? 'chart-hidden' : ''}" bind:this={plot}></div>
+                        <div class="major-finding-badge">
+                            <BinaryBadge
+                                badge={MAJOR_FINDING_BADGE}
+                                size="medium"
+                                variant="filled"
+                                leftIconKey="iconIntent"
+                                rightIconKey="none"
+                            />
+                        </div>
                     </div>
                     <!-- <p class="explanation">Each bar shows the total benefits obtain within the given period.</p> -->
 
@@ -956,6 +967,30 @@
     .chart-shell {
         position: relative;
         width: 100%;
+    }
+
+    .major-finding-badge {
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        z-index: 20;
+        pointer-events: auto;
+        opacity: 1;
+    }
+
+    /* Major Finding overlay: white text/icon, not bold, no blur/glass */
+    .major-finding-badge :global(.chip),
+    .major-finding-badge :global(.chip.filled),
+    .major-finding-badge :global(.chip.outlined) {
+        /* Material UI green[600] */
+        background: #43A047 !important;
+        background-color: #43A047 !important;
+        border-color: #43A047 !important;
+        color: #ffffff !important;
+        font-weight: 500 !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
     }
 
     .chart-hidden {

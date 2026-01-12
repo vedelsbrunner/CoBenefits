@@ -16,7 +16,7 @@
 
   const sizeMap: Record<ChipSize, { py: number; px: number; font: number; icon: number; hideLabel: boolean }> = {
     small: { py: 0, px: 0, font: 12, icon: 22, hideLabel: true },
-    medium: { py: 1, px: 3, font: 14, icon: 22, hideLabel: false },
+    medium: { py: 2, px: 8, font: 14, icon: 16, hideLabel: false },
     large: { py: 1, px: 5, font: 18, icon: 24, hideLabel: false },
   };
 
@@ -34,9 +34,11 @@
   const colorTokens: Record<string, { border: string; fg: string; bg: string }> = {
     grey: { border: 'rgba(17, 24, 39, 0.20)', fg: '#111827', bg: 'rgba(17, 24, 39, 0.06)' },
     black: { border: 'rgba(17, 24, 39, 0.90)', fg: '#ffffff', bg: 'rgba(17, 24, 39, 0.92)' },
-    success: { border: 'rgba(34, 197, 94, 0.40)', fg: 'rgb(22, 101, 52)', bg: 'rgba(34, 197, 94, 0.18)' },
-    warning: { border: 'rgba(245, 158, 11, 0.48)', fg: 'rgb(146, 64, 14)', bg: 'rgba(245, 158, 11, 0.20)' },
-    info: { border: 'rgba(59, 130, 246, 0.40)', fg: 'rgb(30, 64, 175)', bg: 'rgba(59, 130, 246, 0.18)' },
+    // Material UI palette (600):
+    // green[600] = #43A047, blue[600] = #1E88E5, red[600] = #E53935
+    success: { border: 'rgba(67, 160, 71, 0.55)', fg: '#ffffff', bg: '#43A047' },
+    info: { border: 'rgba(30, 136, 229, 0.55)', fg: '#ffffff', bg: '#1E88E5' },
+    warning: { border: 'rgba(229, 57, 53, 0.55)', fg: '#ffffff', bg: '#E53935' },
     primary: { border: 'rgba(99, 102, 241, 0.40)', fg: 'rgb(55, 48, 163)', bg: 'rgba(99, 102, 241, 0.18)' },
     secondary: { border: 'rgba(236, 72, 153, 0.40)', fg: 'rgb(131, 24, 67)', bg: 'rgba(236, 72, 153, 0.18)' },
   };
