@@ -9,14 +9,14 @@ export const MAJOR_FINDING_BADGE: BadgeData = {
 
 export const BACKGROUND_READING_BADGE: BadgeData = {
   label: 'Background Reading Available',
-  description: 'todo',
+  description: 'Additional background reading is available, including context, assumptions, and methods used.',
   intent: 'CONFIRMATION',
   type: 'CONTEXT'
 };
 
 export const OPEN_DATA_BADGE: BadgeData = {
   label: 'Open Data',
-  description: 'todo.',
+  description: 'The underlying data used for this visualization is publicly available and can be downloaded.',
   intent: 'CONFIRMATION',
   type: 'DATA'
 };

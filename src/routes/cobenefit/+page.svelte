@@ -671,26 +671,8 @@
                 </div>
 
                 <div class="header-badges">
-                    <BinaryBadge
-                        badge={BACKGROUND_READING_BADGE}
-                        size="medium"
-                        variant="filled"
-                        leftIconKey="iconIntent"
-                        rightIconKey="none"
-                        fontWeight={500}
-                        tooltipPlacement="top"
-                        interactive={true}
-                    />
-                    <BinaryBadge
-                        badge={OPEN_DATA_BADGE}
-                        size="medium"
-                        variant="filled"
-                        leftIconKey="iconIntent"
-                        rightIconKey="none"
-                        fontWeight={500}
-                        tooltipPlacement="top"
-                        interactive={true}
-                    />
+                    <BinaryBadge badge={BACKGROUND_READING_BADGE} />
+                    <BinaryBadge badge={OPEN_DATA_BADGE} />
                 </div>
 
             </div>
@@ -815,16 +797,7 @@
                         {/if}
                         <div class="plot-bar {loadingOverviewCharts ? 'chart-hidden' : ''}" bind:this={plot}></div>
                         <div class="major-finding-badge">
-                            <BinaryBadge
-                                badge={MAJOR_FINDING_BADGE}
-                                size="medium"
-                                variant="filled"
-                                leftIconKey="iconIntent"
-                                rightIconKey="none"
-                                fontWeight={500}
-                                tooltipPlacement="top"
-                                interactive={true}
-                            />
+                            <BinaryBadge badge={MAJOR_FINDING_BADGE} />
                         </div>
                     </div>
                     <!-- <p class="explanation">Each bar shows the total benefits obtain within the given period.</p> -->

@@ -167,16 +167,7 @@
         <div class="chart-wrap">
             <div class="plot" bind:this={plot}></div>
             <div class="major-finding">
-                <BinaryBadge
-                    badge={MAJOR_FINDING_BADGE}
-                    size="medium"
-                    variant="filled"
-                    leftIconKey="iconIntent"
-                    rightIconKey="none"
-                    fontWeight={500}
-                    tooltipPlacement="top"
-                    interactive={true}
-                />
+                <BinaryBadge badge={MAJOR_FINDING_BADGE} />
             </div>
         </div>
     </div>
