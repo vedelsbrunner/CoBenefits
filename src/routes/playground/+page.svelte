@@ -2,15 +2,23 @@
   import NavigationBar from '$lib/components/NavigationBar.svelte';
   import Badge from '$lib/badge/Badge.svelte';
   import MiniBadges from '$lib/badge/MiniBadges.svelte';
+  import PriorityBadge from '$lib/badge/PriorityBadge.svelte';
+  import PrioritySealBadge from '$lib/badge/PrioritySealBadge.svelte';
   import type { BadgeData, BadgeOnClick } from '$lib/badge/types';
 
   const samples: BadgeData[] = [
     {
       id: '2',
-      label: 'Open Data',
+      label: 'Major Finding',
       description:
         'Indicates that the visualization uses publicly accessible data, which can be downloaded, verified, or reused.',
-      type: 'DATA',
+      intent: 'CONFIRMATION'
+    },
+    {
+      id: '3',
+      label: 'Open Data',
+      description:
+              'Indicates that the visualization uses publicly accessible data, which can be downloaded, verified, or reused.',
       intent: 'CONFIRMATION'
     },
     {
@@ -18,62 +26,121 @@
       label: 'Truncated Axis',
       description:
         'Indicates that the visualization uses a truncated axis, which can affect perception of differences.',
-      type: 'VISUAL ENCODING',
       intent: 'WARNING'
     },
     {
       id: '31',
-      label: 'Uncertainty Shown',
+      label: 'Open Data',
       description: 'Indicates that uncertainty is explicitly shown (e.g., intervals, error bars, bands, or ranges).',
-      type: 'ANALYSIS',
       intent: 'INFORMATION'
     }
   ];
 
   const openDataClick: BadgeOnClick = { href: 'https://google.com', external: true };
-  const infoClick: BadgeOnClick = { href: '/', external: false };
-  const onClickById: Record<string, BadgeOnClick> = { '2': openDataClick, '31': infoClick };
+  const internalClick: BadgeOnClick = { href: '/', external: false };
+
+  function clickFor(badge: BadgeData): BadgeOnClick {
+    const id = String(badge?.id ?? '');
+    if (id === '3') return openDataClick;
+    return internalClick;
+  }
+
+  const onClickById: Record<string | number, BadgeOnClick> = Object.fromEntries(
+    samples.map((b) => [b.id ?? b.label, clickFor(b)])
+  );
 </script>
 
 <NavigationBar />
 
 <main class="playground">
-  <h1 class="title">Playground</h1>
-  <p class="subtitle">
-    Small demo page for visualization badges.
-  </p>
 
-  <div class="grid">
-    <section class="col" aria-label="Filled badges">
-      <h2 class="section-title">Filled</h2>
-      <div class="badge-row">
-        {#each samples as badge (badge.id)}
-          <div class="badge-block">
-            <Badge
+  <section class="mini-section" aria-label="High priority badges with label">
+    <div class="grid">
+      <section class="col" aria-label="Filled high priority badges with label">
+        <h3 class="section-title">Filled</h3>
+        <div class="priority-row">
+          {#each samples as badge (badge.id)}
+            <PriorityBadge {badge} variant="solid" showLabel onClick={clickFor(badge)} />
+          {/each}
+        </div>
+      </section>
+
+      <section class="col" aria-label="Outlined high priority badges with label">
+        <h3 class="section-title">Outlined</h3>
+        <div class="priority-row">
+          {#each samples as badge (badge.id)}
+            <PriorityBadge {badge} variant="ring" showLabel onClick={clickFor(badge)} />
+          {/each}
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <section class="mini-section" aria-label="High priority seal badges">
+    <div class="grid">
+      <section class="col" aria-label="Filled seal badges">
+        <h3 class="section-title">Filled</h3>
+        <div class="priority-row">
+          {#each samples as badge (badge.id)}
+            <PrioritySealBadge
               {badge}
               variant="filled"
-              onClick={badge.id === '2' ? openDataClick : badge.id === '31' ? infoClick : null}
+              onClick={clickFor(badge)}
+              ringText={badge.label}
+              repeat={2}
+              separator="•"
+              size={100}
+              rotationMs={80000}
             />
-          </div>
-        {/each}
-      </div>
-    </section>
+          {/each}
+        </div>
+      </section>
 
-    <section class="col" aria-label="Outlined badges">
-      <h2 class="section-title">Outlined</h2>
-      <div class="badge-row">
-        {#each samples as badge (badge.id)}
-          <div class="badge-block">
-            <Badge
+      <section class="col" aria-label="Outlined seal badges">
+        <h3 class="section-title">Outlined</h3>
+        <div class="priority-row">
+          {#each samples as badge (badge.id)}
+            <PrioritySealBadge
               {badge}
               variant="outlined"
-              onClick={badge.id === '2' ? openDataClick : badge.id === '31' ? infoClick : null}
+              onClick={clickFor(badge)}
+              ringText={badge.label}
+              repeat={2}
+              separator="•"
+              size={100}
+              rotationMs={80000}
             />
-          </div>
-        {/each}
-      </div>
-    </section>
-  </div>
+          {/each}
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <section class="mini-section" aria-label="Normal badges">
+    <div class="grid">
+      <section class="col" aria-label="Filled badges">
+        <h3 class="section-title">Filled</h3>
+        <div class="badge-row">
+          {#each samples as badge (badge.id)}
+            <div class="badge-block">
+              <Badge {badge} variant="filled" onClick={clickFor(badge)} />
+            </div>
+          {/each}
+        </div>
+      </section>
+
+      <section class="col" aria-label="Outlined badges">
+        <h3 class="section-title">Outlined</h3>
+        <div class="badge-row">
+          {#each samples as badge (badge.id)}
+            <div class="badge-block">
+              <Badge {badge} variant="outlined" onClick={clickFor(badge)} />
+            </div>
+          {/each}
+        </div>
+      </section>
+    </div>
+  </section>
 
   <section class="col mini-section" aria-label="Mini badges">
     <h2 class="section-title">Mini</h2>
@@ -133,6 +200,20 @@
     align-items: center;
     min-height: 44px;
   }
+
+  .priority-grid {
+    display: grid;
+    gap: 12px;
+  }
+
+  .priority-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  /* Reuse the main grid+col styling for the seal showcase too. */
 
   .section-title {
     margin: 0 0 10px 0;
