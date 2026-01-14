@@ -1,7 +1,7 @@
 <script lang="ts">
   import NavigationBar from '$lib/components/NavigationBar.svelte';
-  import BinaryBadge from '$lib/visbadges/BinaryBadge.svelte';
-  import type { BadgeData } from '$lib/visbadges/types';
+  import BinaryBadge from '$lib/badge/BinaryBadge.svelte';
+  import type { BadgeData } from '$lib/badge/types';
 
   let interactive = true;
 

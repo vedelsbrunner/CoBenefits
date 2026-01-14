@@ -31,7 +31,7 @@
 
   function intentToIcon(intent?: BadgeIntent): VisBadgeIconName | null {
     if (!intent) return null;
-    if (intent === 'CONFIRMATION') return 'CheckCircle';
+    if (intent === 'CONFIRMATION') return 'Confirmation';
     if (intent === 'INFORMATION') return 'Info';
     if (intent === 'WARNING') return 'Warning';
     return null;

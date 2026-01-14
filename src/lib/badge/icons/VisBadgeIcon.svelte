@@ -1,10 +1,10 @@
 <script lang="ts">
-  export type VisBadgeIconName = 'CheckCircle' | 'Warning' | 'Info';
+  export type VisBadgeIconName = 'Confirmation' | 'Warning' | 'Info';
   export let name: VisBadgeIconName;
   export let size: number = 18;
 </script>
 
-{#if name === 'CheckCircle'}
+{#if name === 'Confirmation'}
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
     <path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z" fill="currentColor" opacity="0.14" />
     <path

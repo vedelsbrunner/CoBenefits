@@ -42,8 +42,8 @@
     } from "$lib/duckdb";
 
     import NavigationBar from "$lib/components/NavigationBar.svelte";
-    import BinaryBadge from '$lib/visbadges/BinaryBadge.svelte';
-    import { BACKGROUND_READING_BADGE, MAJOR_FINDING_BADGE, OPEN_DATA_BADGE } from '$lib/visbadges/badges';
+    import BinaryBadge from '$lib/badge/BinaryBadge.svelte';
+    import { BACKGROUND_READING_BADGE, MAJOR_FINDING_BADGE, OPEN_DATA_BADGE } from '$lib/badge/badges';
 
     import total from '$lib/icons/total.png';
     import per_capita from '$lib/icons/per_capita.png';
