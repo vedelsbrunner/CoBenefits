@@ -48,8 +48,7 @@
         AGGREGATED_DATA_BADGE,
         BOX_PLOTS_BADGE,
         CORRELATION_NOT_CAUSATION_BADGE,
-        DISCRETE_SCALES_BADGE,
-        UNCERTAINTY_SHOWN_BADGE
+        DISCRETE_SCALES_BADGE
     } from '$lib/badge/pageBadges';
 
     import total from '$lib/icons/total.png';
@@ -961,7 +960,6 @@
                                 </div>
                                 {#if SEF_CATEGORICAL.includes(sef.id)}
                                     <div class="chart-badges" aria-label="Chart badges">
-                                        <Badge badge={UNCERTAINTY_SHOWN_BADGE} variant="outlined" type="mini" />
                                         <Badge badge={BOX_PLOTS_BADGE} variant="outlined" type="mini" />
                                     </div>
                                 {:else}

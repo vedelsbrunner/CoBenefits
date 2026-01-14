@@ -164,12 +164,6 @@
         <input type="radio" on:change={onChange} name="visType" value="distribution">
         <label for="javascript">Distribution</label>
 
-        <div class="chart-wrap">
-            <div class="plot" bind:this={plot}></div>
-            <div class="major-finding">
-                <Badge badge={MAJOR_FINDING_BADGE} />
-            </div>
-        </div>
     </div>
 
 <!--    <div>map</div>-->
@@ -202,16 +196,6 @@
 
         width: 97vw;
         /*height: 50vh;*/
-    }
-
-    .chart-wrap {
-        position: relative;
-    }
-
-    .major-finding {
-        z-index: 5;
-        opacity: 1;
-        pointer-events: auto;
     }
 
 </style>
