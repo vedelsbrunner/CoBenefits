@@ -19,5 +19,10 @@ export interface BadgeData {
   label: string;
   description?: string;
   intent?: BadgeIntent;
+  /**
+   * Optional grouping/category for downstream filtering/analytics.
+   * (Some badge definitions include this field.)
+   */
+  type?: string;
 }
 

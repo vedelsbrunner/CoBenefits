@@ -5,10 +5,29 @@
   import type { BadgeData, BadgeIntent, BadgeOnClick } from './types';
   import type { VisBadgeIconName } from './icons/VisBadgeIcon.svelte';
 
+  export type BadgeType = 'mini' | 'normal' | 'big';
   export type BadgeTone = 'neutral' | 'success' | 'info' | 'warning';
   export type BadgeVariant = 'filled' | 'outlined';
 
+  // Big badge renderers
+  export type BigStyle = 'round' | 'seal';
+  export type BigRoundVariant = 'solid' | 'ring' | 'double-ring' | 'stamp' | 'glow';
+  export type SealVariant = 'outlined' | 'filled';
+
   export let badge: BadgeData;
+
+  /**
+   * Generic badge size.
+   * - mini: collapsed icon-only pill (expands on hover/focus)
+   * - normal: standard pill badge
+   * - big: high-priority badge (round or sealed)
+   */
+  export let type: BadgeType = 'normal';
+
+  /**
+   * Deprecated alias (kept for backwards compatibility).
+   * Prefer `type="mini"`.
+   */
   export let variant: BadgeVariant = 'filled';
   export let mini: boolean = false;
   export let onClick: BadgeOnClick | null = null;
@@ -41,8 +60,12 @@
   $: intent = toIntent(badge?.intent);
   $: tone = intentToTone(intent);
   $: iconName = intentToIcon(intent);
-  $: iconSize = mini ? 24 : 20;
-  $: showTooltip = Boolean(badge?.description) || Boolean(onClick);
+
+  $: effectiveType = mini ? 'mini' : type;
+
+  // ----- Normal/mini pill -----
+  $: pillIconSize = effectiveType === 'mini' ? 24 : 20;
+  $: showTooltip = effectiveType === 'big' ? true : Boolean(badge?.description) || Boolean(onClick);
 
   function isExternalHref(href: string, externalFlag?: boolean): boolean {
     if (externalFlag) return true;
@@ -58,59 +81,219 @@
           return base && raw.startsWith(base + '/') ? raw : `${base}${raw}`;
         })()
     : null;
+
+  // ----- Big: round -----
+  export let bigStyle: BigStyle = 'round';
+  export let bigVariant: BigRoundVariant = 'solid';
+  export let bigSize: number = 44;
+  export let bigShowLabel: boolean = false;
+
+  function fullLabel(label: unknown): string {
+    const cleaned = String(label ?? '').trim();
+    return cleaned || '—';
+  }
+
+  $: rawLabel = fullLabel(badge?.label);
+  $: labelLen = rawLabel.length;
+  $: roundRenderSize = bigShowLabel ? Math.min(104, Math.max(bigSize, 70 + Math.max(0, labelLen - 12) * 1.4)) : bigSize;
+  $: roundIconSize = Math.round(roundRenderSize * (bigShowLabel ? 0.34 : 0.55));
+  $: roundTextSize = bigShowLabel ? (labelLen <= 12 ? 12 : labelLen <= 18 ? 11 : labelLen <= 26 ? 10 : 9) : 0;
+
+  // ----- Big: seal -----
+  export let sealVariant: SealVariant = 'outlined';
+  export let ringText: string | null = null;
+  export let repeat: number = 2;
+  export let separator: string = ' • ';
+  export let sealSize: number = 76;
+  export let rotationMs: number = 200000;
+
+  function clamp(n: number, min: number, max: number) {
+    return Math.max(min, Math.min(max, n));
+  }
+
+  $: sealDisplayText = (ringText ?? badge?.label ?? '').trim() || '—';
+  $: repeatSafe = clamp(Math.floor(repeat || 1), 1, 10);
+  $: sealChars = [...Array(repeatSafe)]
+    .map(() => [...sealDisplayText.toUpperCase()].concat([...separator.toUpperCase()]))
+    .flat();
+  $: ringFontPx = Math.round(sealSize * 0.12);
+  $: centerIcon = Math.round(sealSize * 0.30);
 </script>
 
 {#if badge}
   {#if showTooltip}
-    <FlowbiteTooltip placement="top" openDelayMs={mini ? 420 : 80}>
+    <FlowbiteTooltip
+      placement="top"
+      openDelayMs={effectiveType === 'big' ? 120 : effectiveType === 'mini' ? 420 : 80}
+    >
       <span slot="trigger">
-        {#if onClick && href}
-          <a
-            class="badge {tone} {variant} {mini ? 'mini' : ''} interactive"
-            href={href}
-            target={external ? '_blank' : undefined}
-            rel={external ? 'noopener noreferrer' : undefined}
-            aria-label={badge.label}
-          >
-            {#if iconName}
-              <span class="icon" aria-hidden="true">
-                <VisBadgeIcon
-                  name={iconName}
-                  size={iconSize}
-                  bg={variant === 'outlined' ? 'var(--badge-solid)' : '#ffffff'}
-                  fg={variant === 'outlined' ? '#ffffff' : 'var(--badge-solid)'}
-                  bgOpacity={1}
-                />
+        {#if effectiveType === 'big'}
+          {#if bigStyle === 'seal'}
+            {#if onClick && href}
+              <a
+                class="seal {tone} {sealVariant}"
+                style={`--seal-size:${sealSize}px; --seal-font:${ringFontPx}px; --rotation:${rotationMs}ms;`}
+                href={href}
+                target={external ? '_blank' : undefined}
+                rel={external ? 'noopener noreferrer' : undefined}
+                aria-label={badge.label}
+              >
+                <span class="ring {rotationMs > 0 ? 'spin' : ''}" aria-hidden="true">
+                  {#each sealChars as char, index (index)}
+                    <span class="char" style={`--angle:${(1 / sealChars.length) * index}turn;`}>{char}</span>
+                  {/each}
+                </span>
+
+                <span class="center" aria-hidden="true">
+                  <span class="center-pill">
+                    {#if iconName}
+                      <VisBadgeIcon
+                        name={iconName}
+                        size={centerIcon}
+                        bg="var(--seal-solid)"
+                        fg="#ffffff"
+                        bgOpacity={1}
+                      />
+                    {/if}
+                  </span>
+                </span>
+              </a>
+            {:else}
+              <span
+                class="seal {tone} {sealVariant}"
+                style={`--seal-size:${sealSize}px; --seal-font:${ringFontPx}px; --rotation:${rotationMs}ms;`}
+                role="note"
+                tabindex="0"
+                aria-label={badge.label}
+              >
+                <span class="ring {rotationMs > 0 ? 'spin' : ''}" aria-hidden="true">
+                  {#each sealChars as char, index (index)}
+                    <span class="char" style={`--angle:${(1 / sealChars.length) * index}turn;`}>{char}</span>
+                  {/each}
+                </span>
+
+                <span class="center" aria-hidden="true">
+                  <span class="center-pill">
+                    {#if iconName}
+                      <VisBadgeIcon
+                        name={iconName}
+                        size={centerIcon}
+                        bg="var(--seal-solid)"
+                        fg="#ffffff"
+                        bgOpacity={1}
+                      />
+                    {/if}
+                  </span>
+                </span>
               </span>
             {/if}
-            <span class="label">{badge.label}</span>
-          </a>
+          {:else}
+            {#if onClick && href}
+              <a
+                class="prio {tone} {bigVariant} {bigShowLabel ? 'with-label' : ''}"
+                style={`--prio-size:${roundRenderSize}px; --prio-text-size:${roundTextSize}px;`}
+                href={href}
+                target={external ? '_blank' : undefined}
+                rel={external ? 'noopener noreferrer' : undefined}
+                aria-label={badge.label}
+              >
+                <span class="prio-inner" aria-hidden="true">
+                  {#if iconName}
+                    <VisBadgeIcon
+                      name={iconName}
+                      size={roundIconSize}
+                      bg={bigVariant === 'solid' ? '#ffffff' : 'var(--prio-solid)'}
+                      bgOpacity={1}
+                      fg={bigVariant === 'solid' ? 'var(--prio-solid)' : '#ffffff'}
+                    />
+                  {/if}
+                  {#if bigShowLabel}
+                    <span class="prio-text">{rawLabel}</span>
+                  {/if}
+                </span>
+              </a>
+            {:else}
+              <span
+                class="prio {tone} {bigVariant} {bigShowLabel ? 'with-label' : ''}"
+                style={`--prio-size:${roundRenderSize}px; --prio-text-size:${roundTextSize}px;`}
+                role="note"
+                tabindex="0"
+                aria-label={badge.label}
+              >
+                <span class="prio-inner" aria-hidden="true">
+                  {#if iconName}
+                    <VisBadgeIcon
+                      name={iconName}
+                      size={roundIconSize}
+                      bg={bigVariant === 'solid' ? '#ffffff' : 'var(--prio-solid)'}
+                      bgOpacity={1}
+                      fg={bigVariant === 'solid' ? 'var(--prio-solid)' : '#ffffff'}
+                    />
+                  {/if}
+                  {#if bigShowLabel}
+                    <span class="prio-text">{rawLabel}</span>
+                  {/if}
+                </span>
+              </span>
+            {/if}
+          {/if}
         {:else}
-          <span
-            class="badge {tone} {variant} {mini ? 'mini' : ''} interactive"
-            role="note"
-            aria-label={badge.label}
-            tabindex="0"
-          >
-            {#if iconName}
-              <span class="icon" aria-hidden="true">
-                <VisBadgeIcon
-                  name={iconName}
-                  size={iconSize}
-                  bg={variant === 'outlined' ? 'var(--badge-solid)' : '#ffffff'}
-                  fg={variant === 'outlined' ? '#ffffff' : 'var(--badge-solid)'}
-                  bgOpacity={1}
-                />
-              </span>
-            {/if}
-            <span class="label">{badge.label}</span>
-          </span>
+          {#if onClick && href}
+            <a
+              class="badge {tone} {variant} {effectiveType === 'mini' ? 'mini' : ''} interactive"
+              href={href}
+              target={external ? '_blank' : undefined}
+              rel={external ? 'noopener noreferrer' : undefined}
+              aria-label={badge.label}
+            >
+              {#if iconName}
+                <span class="icon" aria-hidden="true">
+                  <VisBadgeIcon
+                    name={iconName}
+                    size={pillIconSize}
+                    bg={variant === 'outlined' ? 'var(--badge-solid)' : '#ffffff'}
+                    fg={variant === 'outlined' ? '#ffffff' : 'var(--badge-solid)'}
+                    bgOpacity={1}
+                  />
+                </span>
+              {/if}
+              <span class="label">{badge.label}</span>
+            </a>
+          {:else}
+            <span
+              class="badge {tone} {variant} {effectiveType === 'mini' ? 'mini' : ''} interactive"
+              role="note"
+              aria-label={badge.label}
+              tabindex="0"
+            >
+              {#if iconName}
+                <span class="icon" aria-hidden="true">
+                  <VisBadgeIcon
+                    name={iconName}
+                    size={pillIconSize}
+                    bg={variant === 'outlined' ? 'var(--badge-solid)' : '#ffffff'}
+                    fg={variant === 'outlined' ? '#ffffff' : 'var(--badge-solid)'}
+                    bgOpacity={1}
+                  />
+                </span>
+              {/if}
+              <span class="label">{badge.label}</span>
+            </span>
+          {/if}
         {/if}
       </span>
       <span slot="content">
-        {#if badge.description}
-          <span class="tip-desc">{badge.description}</span>
+        {#if effectiveType === 'big'}
+          <strong>{badge.label}</strong>
+          {#if badge.description}
+            <span style="display:block;margin-top:4px;opacity:0.9">{badge.description}</span>
+          {/if}
+        {:else}
+          {#if badge.description}
+            <span class="tip-desc">{badge.description}</span>
+          {/if}
         {/if}
+
         {#if onClick}
           <span class="tip-hint" aria-label="Click for more">
             <span>Click for more</span>
@@ -125,47 +308,147 @@
       </span>
     </FlowbiteTooltip>
   {:else}
-    {#if onClick && href}
-      <a
-        class="badge {tone} {variant} {mini ? 'mini' : ''} interactive"
-        href={href}
-        target={external ? '_blank' : undefined}
-        rel={external ? 'noopener noreferrer' : undefined}
-        aria-label={badge.label}
-      >
-        {#if iconName}
-          <span class="icon" aria-hidden="true">
-            <VisBadgeIcon
-              name={iconName}
-              size={iconSize}
-              bg={variant === 'outlined' ? 'var(--badge-solid)' : '#ffffff'}
-              fg={variant === 'outlined' ? '#ffffff' : 'var(--badge-solid)'}
-              bgOpacity={1}
-            />
+    {#if effectiveType === 'big'}
+      {#if bigStyle === 'seal'}
+        {#if onClick && href}
+          <a
+            class="seal {tone} {sealVariant}"
+            style={`--seal-size:${sealSize}px; --seal-font:${ringFontPx}px; --rotation:${rotationMs}ms;`}
+            href={href}
+            target={external ? '_blank' : undefined}
+            rel={external ? 'noopener noreferrer' : undefined}
+            aria-label={badge.label}
+          >
+            <span class="ring {rotationMs > 0 ? 'spin' : ''}" aria-hidden="true">
+              {#each sealChars as char, index (index)}
+                <span class="char" style={`--angle:${(1 / sealChars.length) * index}turn;`}>{char}</span>
+              {/each}
+            </span>
+
+            <span class="center" aria-hidden="true">
+              <span class="center-pill">
+                {#if iconName}
+                  <VisBadgeIcon name={iconName} size={centerIcon} bg="var(--seal-solid)" fg="#ffffff" bgOpacity={1} />
+                {/if}
+              </span>
+            </span>
+          </a>
+        {:else}
+          <span
+            class="seal {tone} {sealVariant}"
+            style={`--seal-size:${sealSize}px; --seal-font:${ringFontPx}px; --rotation:${rotationMs}ms;`}
+            role="note"
+            tabindex="0"
+            aria-label={badge.label}
+          >
+            <span class="ring {rotationMs > 0 ? 'spin' : ''}" aria-hidden="true">
+              {#each sealChars as char, index (index)}
+                <span class="char" style={`--angle:${(1 / sealChars.length) * index}turn;`}>{char}</span>
+              {/each}
+            </span>
+
+            <span class="center" aria-hidden="true">
+              <span class="center-pill">
+                {#if iconName}
+                  <VisBadgeIcon name={iconName} size={centerIcon} bg="var(--seal-solid)" fg="#ffffff" bgOpacity={1} />
+                {/if}
+              </span>
+            </span>
           </span>
         {/if}
-        <span class="label">{badge.label}</span>
-      </a>
+      {:else}
+        {#if onClick && href}
+          <a
+            class="prio {tone} {bigVariant} {bigShowLabel ? 'with-label' : ''}"
+            style={`--prio-size:${roundRenderSize}px; --prio-text-size:${roundTextSize}px;`}
+            href={href}
+            target={external ? '_blank' : undefined}
+            rel={external ? 'noopener noreferrer' : undefined}
+            aria-label={badge.label}
+          >
+            <span class="prio-inner" aria-hidden="true">
+              {#if iconName}
+                <VisBadgeIcon
+                  name={iconName}
+                  size={roundIconSize}
+                  bg={bigVariant === 'solid' ? '#ffffff' : 'var(--prio-solid)'}
+                  bgOpacity={1}
+                  fg={bigVariant === 'solid' ? 'var(--prio-solid)' : '#ffffff'}
+                />
+              {/if}
+              {#if bigShowLabel}
+                <span class="prio-text">{rawLabel}</span>
+              {/if}
+            </span>
+          </a>
+        {:else}
+          <span
+            class="prio {tone} {bigVariant} {bigShowLabel ? 'with-label' : ''}"
+            style={`--prio-size:${roundRenderSize}px; --prio-text-size:${roundTextSize}px;`}
+            role="note"
+            tabindex="0"
+            aria-label={badge.label}
+          >
+            <span class="prio-inner" aria-hidden="true">
+              {#if iconName}
+                <VisBadgeIcon
+                  name={iconName}
+                  size={roundIconSize}
+                  bg={bigVariant === 'solid' ? '#ffffff' : 'var(--prio-solid)'}
+                  bgOpacity={1}
+                  fg={bigVariant === 'solid' ? 'var(--prio-solid)' : '#ffffff'}
+                />
+              {/if}
+              {#if bigShowLabel}
+                <span class="prio-text">{rawLabel}</span>
+              {/if}
+            </span>
+          </span>
+        {/if}
+      {/if}
     {:else}
-      <span
-        class="badge {tone} {variant} {mini ? 'mini' : ''} interactive"
-        role="note"
-        aria-label={badge.label}
-        tabindex="0"
-      >
-        {#if iconName}
-          <span class="icon" aria-hidden="true">
-            <VisBadgeIcon
-              name={iconName}
-              size={iconSize}
-              bg={variant === 'outlined' ? 'var(--badge-solid)' : '#ffffff'}
-              fg={variant === 'outlined' ? '#ffffff' : 'var(--badge-solid)'}
-              bgOpacity={1}
-            />
-          </span>
-        {/if}
-        <span class="label">{badge.label}</span>
-      </span>
+      {#if onClick && href}
+        <a
+          class="badge {tone} {variant} {effectiveType === 'mini' ? 'mini' : ''} interactive"
+          href={href}
+          target={external ? '_blank' : undefined}
+          rel={external ? 'noopener noreferrer' : undefined}
+          aria-label={badge.label}
+        >
+          {#if iconName}
+            <span class="icon" aria-hidden="true">
+              <VisBadgeIcon
+                name={iconName}
+                size={pillIconSize}
+                bg={variant === 'outlined' ? 'var(--badge-solid)' : '#ffffff'}
+                fg={variant === 'outlined' ? '#ffffff' : 'var(--badge-solid)'}
+                bgOpacity={1}
+              />
+            </span>
+          {/if}
+          <span class="label">{badge.label}</span>
+        </a>
+      {:else}
+        <span
+          class="badge {tone} {variant} {effectiveType === 'mini' ? 'mini' : ''} interactive"
+          role="note"
+          aria-label={badge.label}
+          tabindex="0"
+        >
+          {#if iconName}
+            <span class="icon" aria-hidden="true">
+              <VisBadgeIcon
+                name={iconName}
+                size={pillIconSize}
+                bg={variant === 'outlined' ? 'var(--badge-solid)' : '#ffffff'}
+                fg={variant === 'outlined' ? '#ffffff' : 'var(--badge-solid)'}
+                bgOpacity={1}
+              />
+            </span>
+          {/if}
+          <span class="label">{badge.label}</span>
+        </span>
+      {/if}
     {/if}
   {/if}
 {/if}
@@ -354,6 +637,224 @@
   /* Keep a clean keyboard-only focus ring (no drop shadow). */
   .badge.mini.interactive:focus-visible {
     box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.25);
+  }
+
+  /* ----- Big: round priority badge ----- */
+  .prio {
+    width: var(--prio-size);
+    height: var(--prio-size);
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    outline: none;
+    user-select: none;
+    transition: transform 160ms cubic-bezier(0.2, 0, 0, 1), box-shadow 160ms cubic-bezier(0.2, 0, 0, 1),
+      filter 160ms cubic-bezier(0.2, 0, 0, 1);
+    --prio-solid: rgb(17, 24, 39);
+    --prio-fg: #ffffff;
+    --prio-border: rgba(17, 24, 39, 0.22);
+    --prio-text: #ffffff;
+  }
+
+  a.prio {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .prio-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .prio.with-label .prio-inner {
+    flex-direction: column;
+    gap: 2px;
+    padding: 3px 5px 5px 5px;
+    box-sizing: border-box;
+  }
+
+  .prio-text {
+    font-size: var(--prio-text-size, 10px);
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1.05;
+    color: var(--prio-text);
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    opacity: 0.95;
+  }
+
+  .prio.neutral {
+    --prio-solid: rgb(17, 24, 39);
+    --prio-border: rgba(17, 24, 39, 0.22);
+  }
+
+  .prio.success {
+    --prio-solid: rgb(46, 125, 50);
+    --prio-border: rgba(46, 125, 50, 0.65);
+  }
+
+  .prio.info {
+    --prio-solid: rgb(2, 136, 209);
+    --prio-border: rgba(2, 136, 209, 0.65);
+  }
+
+  .prio.warning {
+    --prio-solid: rgb(237, 108, 2);
+    --prio-border: rgba(237, 108, 2, 0.7);
+  }
+
+  .prio.solid {
+    background: var(--prio-solid);
+  }
+
+  .prio.ring {
+    background: #ffffff;
+    box-shadow: inset 0 0 0 2px var(--prio-solid);
+    --prio-text: var(--prio-solid);
+  }
+
+  .prio.double-ring {
+    background: var(--prio-solid);
+    box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.95), 0 0 0 2px var(--prio-solid);
+  }
+
+  .prio.stamp {
+    background: var(--prio-solid);
+    box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.85);
+    filter: saturate(1.05);
+  }
+  .prio.stamp .prio-inner {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 0);
+    background-size: 6px 6px;
+    background-position: 0 0;
+  }
+
+  .prio.glow {
+    background: var(--prio-solid);
+    box-shadow: 0 10px 22px rgba(17, 24, 39, 0.16), 0 0 0 3px rgba(255, 255, 255, 0.92);
+  }
+
+  .prio:focus-visible {
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.28), 0 10px 22px rgba(17, 24, 39, 0.16);
+  }
+
+  .prio:hover {
+    transform: translateY(-1px);
+  }
+
+  /* ----- Big: seal badge ----- */
+  .seal {
+    position: relative;
+    width: var(--seal-size);
+    height: var(--seal-size);
+    border-radius: 999px;
+    display: inline-grid;
+    place-items: center;
+    outline: none;
+    cursor: pointer;
+    user-select: none;
+    background: transparent;
+    --seal-solid: rgb(17, 24, 39);
+    --seal-ring: rgba(17, 24, 39, 0.55);
+    --seal-line: rgba(17, 24, 39, 0.18);
+    --seal-ring-fg: var(--seal-solid);
+  }
+
+  a.seal {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .seal.success {
+    --seal-solid: rgb(46, 125, 50);
+    --seal-ring: rgba(46, 125, 50, 0.62);
+    --seal-line: rgba(46, 125, 50, 0.22);
+  }
+  .seal.info {
+    --seal-solid: rgb(2, 136, 209);
+    --seal-ring: rgba(2, 136, 209, 0.62);
+    --seal-line: rgba(2, 136, 209, 0.22);
+  }
+  .seal.warning {
+    --seal-solid: rgb(237, 108, 2);
+    --seal-ring: rgba(237, 108, 2, 0.68);
+    --seal-line: rgba(237, 108, 2, 0.24);
+  }
+
+  .seal.filled {
+    background: var(--seal-solid);
+    --seal-ring-fg: rgba(255, 255, 255, 0.92);
+  }
+
+  .ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 999px;
+    font-size: var(--seal-font);
+    color: var(--seal-ring-fg);
+    opacity: 0.92;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-weight: 400;
+  }
+
+  @keyframes rotation {
+    0% {
+      transform: rotate(0turn);
+    }
+    100% {
+      transform: rotate(1turn);
+    }
+  }
+
+  .ring.spin {
+    animation: rotation var(--rotation) linear infinite;
+  }
+
+  .char {
+    width: 1em;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%) rotate(var(--angle));
+    text-align: center;
+  }
+
+  .center {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+  }
+
+  .center-pill {
+    width: calc(var(--seal-size) * 0.64);
+    height: calc(var(--seal-size) * 0.64);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid var(--seal-line);
+    display: grid;
+    place-items: center;
+    opacity: 0.95;
+  }
+
+  .seal.filled .center-pill {
+    border-color: rgba(255, 255, 255, 0.35);
+    background: #ffffff;
+    opacity: 1;
+  }
+
+  .seal:focus-visible .center-pill {
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
   }
 </style>
 

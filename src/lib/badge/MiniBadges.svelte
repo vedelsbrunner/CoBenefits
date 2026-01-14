@@ -53,7 +53,7 @@
   <div class="row {expandDirection}">
     {#each sortedBadges as badge (badge.id ?? badge.label)}
       {#if badge}
-        <Badge {badge} variant="outlined" mini onClick={onClickById[keyFor(badge)] ?? null} />
+        <Badge {badge} type="mini" variant="outlined" onClick={onClickById[keyFor(badge)] ?? null} />
       {/if}
     {/each}
   </div>

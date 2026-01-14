@@ -2,8 +2,6 @@
   import NavigationBar from '$lib/components/NavigationBar.svelte';
   import Badge from '$lib/badge/Badge.svelte';
   import MiniBadges from '$lib/badge/MiniBadges.svelte';
-  import PriorityBadge from '$lib/badge/PriorityBadge.svelte';
-  import PrioritySealBadge from '$lib/badge/PrioritySealBadge.svelte';
   import type { BadgeData, BadgeOnClick } from '$lib/badge/types';
 
   const samples: BadgeData[] = [
@@ -60,7 +58,7 @@
         <h3 class="section-title">Filled</h3>
         <div class="priority-row">
           {#each samples as badge (badge.id)}
-            <PriorityBadge {badge} variant="solid" showLabel onClick={clickFor(badge)} />
+            <Badge {badge} type="big" bigStyle="round" bigVariant="solid" bigShowLabel onClick={clickFor(badge)} />
           {/each}
         </div>
       </section>
@@ -69,7 +67,7 @@
         <h3 class="section-title">Outlined</h3>
         <div class="priority-row">
           {#each samples as badge (badge.id)}
-            <PriorityBadge {badge} variant="ring" showLabel onClick={clickFor(badge)} />
+            <Badge {badge} type="big" bigStyle="round" bigVariant="ring" bigShowLabel onClick={clickFor(badge)} />
           {/each}
         </div>
       </section>
@@ -82,14 +80,16 @@
         <h3 class="section-title">Filled</h3>
         <div class="priority-row">
           {#each samples as badge (badge.id)}
-            <PrioritySealBadge
+            <Badge
               {badge}
-              variant="filled"
+              type="big"
+              bigStyle="seal"
+              sealVariant="filled"
               onClick={clickFor(badge)}
               ringText={badge.label}
               repeat={2}
               separator="•"
-              size={100}
+              sealSize={100}
               rotationMs={80000}
             />
           {/each}
@@ -100,14 +100,16 @@
         <h3 class="section-title">Outlined</h3>
         <div class="priority-row">
           {#each samples as badge (badge.id)}
-            <PrioritySealBadge
+            <Badge
               {badge}
-              variant="outlined"
+              type="big"
+              bigStyle="seal"
+              sealVariant="outlined"
               onClick={clickFor(badge)}
               ringText={badge.label}
               repeat={2}
               separator="•"
-              size={100}
+              sealSize={100}
               rotationMs={80000}
             />
           {/each}
