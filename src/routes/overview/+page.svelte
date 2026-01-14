@@ -3,7 +3,7 @@
     import * as Plot from "@observablehq/plot";
 
     import MapCanvas from "$lib/components/old/MapCanvas.svelte";
-    import BinaryBadge from '$lib/badge/BinaryBadge.svelte';
+    import Badge from '$lib/badge/Badge.svelte';
     import { MAJOR_FINDING_BADGE } from '$lib/badge/badges';
 
     let element: HTMLElement
@@ -167,7 +167,7 @@
         <div class="chart-wrap">
             <div class="plot" bind:this={plot}></div>
             <div class="major-finding">
-                <BinaryBadge badge={MAJOR_FINDING_BADGE} />
+                <Badge badge={MAJOR_FINDING_BADGE} />
             </div>
         </div>
     </div>

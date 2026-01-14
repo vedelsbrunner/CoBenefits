@@ -42,7 +42,7 @@
     } from "$lib/duckdb";
 
     import NavigationBar from "$lib/components/NavigationBar.svelte";
-    import BinaryBadge from '$lib/badge/BinaryBadge.svelte';
+    import Badge from '$lib/badge/Badge.svelte';
     import { BACKGROUND_READING_BADGE, MAJOR_FINDING_BADGE, OPEN_DATA_BADGE } from '$lib/badge/badges';
 
     import total from '$lib/icons/total.png';
@@ -671,8 +671,8 @@
                 </div>
 
                 <div class="header-badges">
-                    <BinaryBadge badge={BACKGROUND_READING_BADGE} />
-                    <BinaryBadge badge={OPEN_DATA_BADGE} />
+                    <Badge badge={BACKGROUND_READING_BADGE} />
+                    <Badge badge={OPEN_DATA_BADGE} />
                 </div>
 
             </div>
@@ -797,7 +797,7 @@
                         {/if}
                         <div class="plot-bar {loadingOverviewCharts ? 'chart-hidden' : ''}" bind:this={plot}></div>
                         <div class="major-finding-badge">
-                            <BinaryBadge badge={MAJOR_FINDING_BADGE} />
+                            <Badge badge={MAJOR_FINDING_BADGE} />
                         </div>
                     </div>
                     <!-- <p class="explanation">Each bar shows the total benefits obtain within the given period.</p> -->

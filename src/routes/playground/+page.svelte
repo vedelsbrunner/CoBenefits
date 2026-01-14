@@ -1,9 +1,7 @@
 <script lang="ts">
   import NavigationBar from '$lib/components/NavigationBar.svelte';
-  import BinaryBadge from '$lib/badge/BinaryBadge.svelte';
+  import Badge from '$lib/badge/Badge.svelte';
   import type { BadgeData } from '$lib/badge/types';
-
-  let interactive = true;
 
   const samples: BadgeData[] = [
     {
@@ -40,21 +38,28 @@
     Small demo page for visualization badges.
   </p>
 
-  <section class="controls" aria-label="Badge design controls">
-    <div class="controls-row">
-      <label class="control checkbox">
-        <span class="control-label">Interactive</span>
-        <input type="checkbox" bind:checked={interactive} />
-      </label>
-    </div>
-  </section>
-
-  <div class="badge-row">
-    {#each samples as badge (badge.id)}
-      <div class="badge-block">
-        <BinaryBadge {badge} {interactive} />
+  <div class="grid">
+    <section class="col" aria-label="Filled badges">
+      <h2 class="section-title">Filled</h2>
+      <div class="badge-row">
+        {#each samples as badge (badge.id)}
+          <div class="badge-block">
+            <Badge {badge} variant="filled" />
+          </div>
+        {/each}
       </div>
-    {/each}
+    </section>
+
+    <section class="col" aria-label="Outlined badges">
+      <h2 class="section-title">Outlined</h2>
+      <div class="badge-row">
+        {#each samples as badge (badge.id)}
+          <div class="badge-block">
+            <Badge {badge} variant="outlined" />
+          </div>
+        {/each}
+      </div>
+    </section>
   </div>
 </main>
 
@@ -76,6 +81,37 @@
     line-height: 1.45;
   }
 
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+
+  @media (max-width: 860px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .col {
+    border: 1px solid rgba(17, 24, 39, 0.1);
+    border-radius: 16px;
+    padding: 14px;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+
+  .section-title {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    font-weight: 800;
+    color: rgba(17, 24, 39, 0.7);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
   .badge-row {
     display: flex;
     gap: 10px;
@@ -88,42 +124,5 @@
     gap: 6px;
   }
 
-  .controls {
-    margin: 12px 0 14px 0;
-    padding: 12px;
-    border: 1px solid rgba(17, 24, 39, 0.1);
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-  }
-
-  .controls-row {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: end;
-  }
-
-  .control {
-    display: grid;
-    gap: 6px;
-    min-width: 150px;
-  }
-
-  .checkbox {
-    min-width: 110px;
-  }
-
-  input[type='checkbox'] {
-    width: 18px;
-    height: 18px;
-    accent-color: #111827;
-  }
-
-  .control-label {
-    font-size: 12px;
-    font-weight: 800;
-    color: rgba(17, 24, 39, 0.7);
-  }
+  /* no controls (badges are always interactive) */
 </style>
