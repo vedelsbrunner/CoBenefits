@@ -30,6 +30,8 @@
     import {getRandomSubarray} from "$lib/utils";
 
     import NavigationBar from "$lib/components/NavigationBar.svelte";
+    import Badge from '$lib/badge/Badge.svelte';
+    import { AGGREGATED_DATA_BADGE, CORRELATION_NOT_CAUSATION_BADGE } from '$lib/badge/pageBadges';
     import {
         getAllCBAllDatazones, getAllCBForOneLAD,
         getAverageCBGroupedByLAD,
@@ -1722,8 +1724,16 @@ console.log("selectedDatum", selectedDatum)
                                     </div>
 
                                     <div>
-                                        <div class="plot" bind:this={SEFPlotPerCB[sef.id]}>
+                                        <div class="chart-shell">
+                                            <div class="plot" bind:this={SEFPlotPerCB[sef.id]}>
+                                            </div>
                                         </div>
+                                        {#if !SEF_CATEGORICAL.includes(sef.id)}
+                                            <div class="chart-badges" aria-label="Chart badges">
+                                                <Badge badge={CORRELATION_NOT_CAUSATION_BADGE} variant="outlined" type="mini" />
+                                                <Badge badge={AGGREGATED_DATA_BADGE} variant="outlined" type="mini" />
+                                            </div>
+                                        {/if}
                                     </div>
                                 </div>
                             {/if}
@@ -1740,6 +1750,20 @@ console.log("selectedDatum", selectedDatum)
 <Footer></Footer>
 
 <style>
+    .chart-shell {
+        position: relative;
+        width: 100%;
+    }
+
+    .chart-badges {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0px;
+        margin-top: 6px;
+        pointer-events: auto;
+        opacity: 0.98;
+    }
+
     .header-row {
         display: flex;
         flex-direction: row;

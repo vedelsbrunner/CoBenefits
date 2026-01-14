@@ -69,7 +69,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 1px;
+    gap: 0px;
     pointer-events: auto;
   }
 

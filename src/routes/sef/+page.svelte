@@ -46,6 +46,8 @@
     import negative from '$lib/icons/negative.png';
     import Footer from "$lib/components/Footer.svelte";
     import {downloadStaticPDF} from "../../globals.js";
+    import Badge from '$lib/badge/Badge.svelte';
+    import { AGGREGATED_DATA_BADGE, CORRELATION_NOT_CAUSATION_BADGE } from '$lib/badge/pageBadges';
 
     const LADEngPath = `${base}/LAD/Eng_Wales_LSOA_LADs.csv`;
     const LADNIPath = `${base}/LAD/NI_DZ_LAD.csv`;
@@ -1059,10 +1061,18 @@ $: {
                         </div>
                             {/if}
                         </div>
-                            {#if SEF_CATEGORICAL.includes(sefId)}
-                            <div class="plot" bind:this={plotSmallJitter[CB.id]}></div>
-                            {:else}
-                            <div class="plot" bind:this={plotSmallMult[CB.id]}></div>
+                            <div class="chart-shell">
+                                {#if SEF_CATEGORICAL.includes(sefId)}
+                                    <div class="plot" bind:this={plotSmallJitter[CB.id]}></div>
+                                {:else}
+                                    <div class="plot" bind:this={plotSmallMult[CB.id]}></div>
+                                {/if}
+                            </div>
+                            {#if !SEF_CATEGORICAL.includes(sefId)}
+                                <div class="chart-badges" aria-label="Chart badges">
+                                    <Badge badge={CORRELATION_NOT_CAUSATION_BADGE} variant="outlined" type="mini" />
+                                    <Badge badge={AGGREGATED_DATA_BADGE} variant="outlined" type="mini" />
+                                </div>
                             {/if}
                         </div>
                     {/each}
@@ -1203,6 +1213,20 @@ $: {
     .plot-container {
         width: 100%;
         margin-bottom: 20px;
+    }
+
+    .chart-shell {
+        position: relative;
+        width: 100%;
+    }
+
+    .chart-badges {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0px;
+        margin-top: 6px;
+        pointer-events: auto;
+        opacity: 0.98;
     }
     
     .component-chart-title {

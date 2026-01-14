@@ -44,6 +44,12 @@
     import NavigationBar from "$lib/components/NavigationBar.svelte";
     import Badge from '$lib/badge/Badge.svelte';
     import { BACKGROUND_READING_BADGE, MAJOR_FINDING_BADGE, OPEN_DATA_BADGE } from '$lib/badge/badges';
+    import {
+        AGGREGATED_DATA_BADGE,
+        BOX_PLOTS_BADGE,
+        CORRELATION_NOT_CAUSATION_BADGE,
+        UNCERTAINTY_SHOWN_BADGE
+    } from '$lib/badge/pageBadges';
 
     import total from '$lib/icons/total.png';
     import per_capita from '$lib/icons/per_capita.png';
@@ -951,6 +957,17 @@
                                     {/if}
                                     <div class="plot {loadingSEFCharts ? 'chart-hidden' : ''}" bind:this={SEFPlot[sef.id]}></div>
                                 </div>
+                                {#if SEF_CATEGORICAL.includes(sef.id)}
+                                    <div class="chart-badges" aria-label="Chart badges">
+                                        <Badge badge={UNCERTAINTY_SHOWN_BADGE} variant="outlined" type="mini" />
+                                        <Badge badge={BOX_PLOTS_BADGE} variant="outlined" type="mini" />
+                                    </div>
+                                {:else}
+                                    <div class="chart-badges" aria-label="Chart badges">
+                                        <Badge badge={CORRELATION_NOT_CAUSATION_BADGE} variant="outlined" type="mini" />
+                                        <Badge badge={AGGREGATED_DATA_BADGE} variant="outlined" type="mini" />
+                                    </div>
+                                {/if}
                             </div>
                         {/each}
                     </div>
@@ -975,6 +992,14 @@
         z-index: 20;
         pointer-events: auto;
         opacity: 1;
+    }
+
+    .chart-badges {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0px;
+        margin-top: 6px;
+        pointer-events: auto;
     }
 
     .chart-hidden {

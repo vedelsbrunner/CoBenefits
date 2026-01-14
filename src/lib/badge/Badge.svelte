@@ -64,7 +64,7 @@
   $: effectiveType = mini ? 'mini' : type;
 
   // ----- Normal/mini pill -----
-  $: pillIconSize = effectiveType === 'mini' ? 24 : 20;
+  $: pillIconSize = effectiveType === 'mini' ? 22 : 20;
   $: showTooltip = effectiveType === 'big' ? true : Boolean(badge?.description) || Boolean(onClick);
 
   function isExternalHref(href: string, externalFlag?: boolean): boolean {
@@ -460,7 +460,7 @@
     gap: var(--badge-gap);
     padding: var(--badge-pad-y) var(--badge-pad-x);
     border-radius: 16px;
-    border: 1px solid transparent;
+    border: var(--badge-border-w) solid transparent;
     font-weight: 500;
     font-size: 14px;
     line-height: 1;
@@ -478,6 +478,7 @@
     --badge-gap: 3px;
     --badge-pad-y: 3px;
     --badge-pad-x: 6px;
+    --badge-border-w: 1px;
   }
 
   /* Tone tokens (roughly aligned with MUI palette intent) */
@@ -593,8 +594,10 @@
     --badge-gap: 0px;
     --badge-pad-y: 0px;
     --badge-pad-x: 0px;
+    --badge-border-w: 0px; /* remove invisible 1px border so adjacent minis can touch */
     border-color: transparent; /* hide outlined border in collapsed state */
     background: transparent; /* no pill in collapsed state */
+    font-size: 12px;
   }
 
   .badge.mini .label {
@@ -606,9 +609,10 @@
 
   .badge.mini:hover,
   .badge.mini:focus-visible {
-    --badge-gap: 3px;
-    --badge-pad-y: 3px;
-    --badge-pad-x: 6px;
+    --badge-gap: 2px;
+    --badge-pad-y: 2px;
+    --badge-pad-x: 5px;
+    --badge-border-w: 1px; /* restore border when expanded */
   }
 
   .badge.mini.outlined:hover,
