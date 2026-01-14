@@ -21,3 +21,9 @@ export const OPEN_DATA_BADGE: BadgeData = {
   type: 'DATA'
 };
 
+export const RAW_DATA_AVAILABLE_BADGE: BadgeData = {
+  label: 'Raw Data Available',
+  description: 'The raw underlying data is available for download.',
+  intent: 'CONFIRMATION',
+  type: 'DATA'
+};

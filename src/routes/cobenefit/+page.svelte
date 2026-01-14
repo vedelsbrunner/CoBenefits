@@ -43,11 +43,12 @@
 
     import NavigationBar from "$lib/components/NavigationBar.svelte";
     import Badge from '$lib/badge/Badge.svelte';
-    import { BACKGROUND_READING_BADGE, MAJOR_FINDING_BADGE, OPEN_DATA_BADGE } from '$lib/badge/badges';
+    import { BACKGROUND_READING_BADGE, MAJOR_FINDING_BADGE, OPEN_DATA_BADGE, RAW_DATA_AVAILABLE_BADGE } from '$lib/badge/badges';
     import {
         AGGREGATED_DATA_BADGE,
         BOX_PLOTS_BADGE,
         CORRELATION_NOT_CAUSATION_BADGE,
+        DISCRETE_SCALES_BADGE,
         UNCERTAINTY_SHOWN_BADGE
     } from '$lib/badge/pageBadges';
 
@@ -657,14 +658,6 @@
             <div class="header-text">
                 <div class="header-bar">
                 <p class="page-subtitle">Co-Benefit Report</p>
-                <button
-
-                        type="button"
-                        class="data-btn"
-                        on:click={exportData}
-                >
-                    Download Page Data
-                </button>
                 </div>
                 <div class="title-container">
                     <h1 class="page-title">
@@ -679,6 +672,7 @@
                 <div class="header-badges">
                     <Badge badge={BACKGROUND_READING_BADGE} />
                     <Badge badge={OPEN_DATA_BADGE} />
+                    <Badge badge={RAW_DATA_AVAILABLE_BADGE} onClick={{ action: exportData, hint: 'Download raw data' }} />
                 </div>
 
             </div>
@@ -760,14 +754,6 @@
                     >> {formatLabel(currentSection)}</span>
 
             </div>
-            <button
-
-                    type="button"
-                    class="data-btn-sticky"
-                    on:click={exportData}
-            >
-                Download Page Data
-            </button>
         </div>
     {/if}
 
@@ -784,27 +770,49 @@
                     </h3>
                     {#if totalValue > 0}
                         <!-- <p class="description">The total benefit for each 5 year interval towards 2050. </p> -->
-                        <p class="description">Each bar shows the predicted total benefits in billion pounds for each
-                            five-year periods for all of UK.</p>
+                        <div class="desc-row">
+                            <p class="description">Each bar shows the predicted total benefits in billion pounds for each
+                                five-year periods for all of UK.</p>
+                            <div class="desc-badges" aria-label="Badges">
+                                <Badge
+                                  badge={MAJOR_FINDING_BADGE}
+                                  type="big"
+                                  bigStyle="seal"
+                                  bigVariant="solid"
+                                  sealVariant="filled"
+                                  bigShowLabel
+                                  sealSize={100}
+                                  rotationMs={80000}
+                                />
+                            </div>
+                        </div>
                     {:else}
                         <!-- <p class="description">The total cost/benefit for each 5 year interval towards 2050. </p> -->
-                        <p class="description">Each bar shows the predicted total costs in billion pounds for each
-                            five-year periods for all of UK.</p>
-                    {/if}
-                    <div class="aggregation-icon-container">
-                        <div class="tooltip-wrapper">
-                            <img class="aggregation-icon" src="{total}" alt="icon"/>
-                            <span class="tooltip-text">This chart uses total values. i.e. shows the total benefit/cost for all of the UK.</span>
+                        <div class="desc-row">
+                            <p class="description">Each bar shows the predicted total costs in billion pounds for each
+                                five-year periods for all of UK.</p>
+                            <div class="desc-badges" aria-label="Badges">
+                                <Badge
+                                  badge={MAJOR_FINDING_BADGE}
+                                  type="big"
+                                  bigStyle="round"
+                                  bigVariant="solid"
+                                  bigShowLabel
+                                />
+                            </div>
                         </div>
-                    </div>
+                    {/if}
+<!--                    <div class="aggregation-icon-container">-->
+<!--                        <div class="tooltip-wrapper">-->
+<!--                            <img class="aggregation-icon" src="{total}" alt="icon"/>-->
+<!--                            <span class="tooltip-text">This chart uses total values. i.e. shows the total benefit/cost for all of the UK.</span>-->
+<!--                        </div>-->
+<!--                    </div>-->
                     <div class="chart-shell" style="height: 280px;">
                         {#if loadingOverviewCharts}
                             <ChartSkeleton height={280}/>
                         {/if}
                         <div class="plot-bar {loadingOverviewCharts ? 'chart-hidden' : ''}" bind:this={plot}></div>
-                        <div class="major-finding-badge">
-                            <Badge badge={MAJOR_FINDING_BADGE} />
-                        </div>
                     </div>
                     <!-- <p class="explanation">Each bar shows the total benefits obtain within the given period.</p> -->
 
@@ -931,17 +939,11 @@
                     </div>
 
 
-                    <!-- Disclaimer -->
-                    <div id="se-disclaimer" class="disclaimer-box">
-                        <p style="margin: 0 0 0.5rem 0;"><strong>Discrete scales:</strong> The first set of
-                            socio-economic factors are using categorical values where the x-axis is non-linear.</p>
-                        <p style="margin: 0 0 0.5rem 0;"><strong>Correlation ≠ Causation:</strong> The scatter plots
-                            represent modelled associations and should not be interpreted as direct causal
-                            relationships. </p>
-                        <p style="margin: 0 0 0.5rem 0;"><strong>Aggregated data:</strong> Each socio-economic factor
-                            for a given local authority is aggregated from the data zones within its boundary. </p>
+                    <div class="disclaimer-badges" aria-label="Disclaimers">
+                        <Badge badge={DISCRETE_SCALES_BADGE} variant="outlined" />
+                        <Badge badge={AGGREGATED_DATA_BADGE} variant="outlined" />
+                        <Badge badge={CORRELATION_NOT_CAUSATION_BADGE} variant="outlined" />
                     </div>
-
                 </div>
 
 
@@ -980,18 +982,31 @@
 <Footer></Footer>
 
 <style>
+    .desc-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 40px;
+    }
+
+    .desc-row :global(.description) {
+        margin: 0;
+        flex: 1 1 420px;
+    }
+
+    .desc-badges {
+        display: inline-flex;
+        align-items: center;
+        gap: 0px;
+        pointer-events: auto;
+        flex: 0 0 auto;
+    }
+
     .chart-shell {
         position: relative;
         width: 100%;
-    }
-
-    .major-finding-badge {
-        position: absolute;
-        right: 12px;
-        bottom: 12px;
-        z-index: 20;
-        pointer-events: auto;
-        opacity: 1;
     }
 
     .chart-badges {
@@ -1000,6 +1015,13 @@
         gap: 0px;
         margin-top: 6px;
         pointer-events: auto;
+    }
+
+    .disclaimer-badges {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-items: flex-start;
     }
 
     .chart-hidden {

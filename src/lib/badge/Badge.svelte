@@ -72,15 +72,39 @@
     return /^https?:\/\//i.test(href);
   }
 
-  $: external = onClick ? isExternalHref(onClick.href, onClick.external) : false;
-  $: href = onClick
-    ? external
-      ? onClick.href
-      : (() => {
-          const raw = onClick.href.startsWith('/') ? onClick.href : `/${onClick.href}`;
-          return base && raw.startsWith(base + '/') ? raw : `${base}${raw}`;
-        })()
-    : null;
+  function hasHref(click: BadgeOnClick | null): click is { href: string; external?: boolean; hint?: string } {
+    return Boolean(click) && typeof (click as any).href === 'string';
+  }
+
+  function hasAction(click: BadgeOnClick | null): click is { action: () => void; hint?: string; ariaLabel?: string } {
+    return Boolean(click) && typeof (click as any).action === 'function';
+  }
+
+  function handleActionKeydown(e: KeyboardEvent, action: () => void) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      action();
+    }
+  }
+
+  $: clickKind = hasHref(onClick) ? 'link' : hasAction(onClick) ? 'action' : 'none';
+  $: external = hasHref(onClick) ? isExternalHref(onClick.href, onClick.external) : false;
+  $: href =
+    hasHref(onClick)
+      ? external
+        ? onClick.href
+        : (() => {
+            const raw = onClick.href.startsWith('/') ? onClick.href : `/${onClick.href}`;
+            return base && raw.startsWith(base + '/') ? raw : `${base}${raw}`;
+          })()
+      : null;
+
+  $: clickHint =
+    onClick && 'hint' in onClick && typeof (onClick as any).hint === 'string' && (onClick as any).hint.trim()
+      ? (onClick as any).hint.trim()
+      : clickKind !== 'none'
+        ? 'Click for more'
+        : '';
 
   // ----- Big: round -----
   export let bigStyle: BigStyle = 'round';
@@ -105,6 +129,11 @@
   export let repeat: number = 2;
   export let separator: string = ' • ';
   export let sealSize: number = 76;
+  /**
+   * Scales the ring text size relative to `sealSize`.
+   * Increase slightly to make the ring text more readable.
+   */
+  export let sealFontScale: number = 0.12;
   export let rotationMs: number = 200000;
 
   function clamp(n: number, min: number, max: number) {
@@ -116,7 +145,7 @@
   $: sealChars = [...Array(repeatSafe)]
     .map(() => [...sealDisplayText.toUpperCase()].concat([...separator.toUpperCase()]))
     .flat();
-  $: ringFontPx = Math.round(sealSize * 0.12);
+  $: ringFontPx = Math.round(sealSize * sealFontScale);
   $: centerIcon = Math.round(sealSize * 0.30);
 </script>
 
@@ -129,7 +158,7 @@
       <span slot="trigger">
         {#if effectiveType === 'big'}
           {#if bigStyle === 'seal'}
-            {#if onClick && href}
+            {#if clickKind === 'link' && href}
               <a
                 class="seal {tone} {sealVariant}"
                 style={`--seal-size:${sealSize}px; --seal-font:${ringFontPx}px; --rotation:${rotationMs}ms;`}
@@ -158,6 +187,36 @@
                   </span>
                 </span>
               </a>
+            {:else if clickKind === 'action' && onClick && 'action' in onClick}
+              <span
+                class="seal {tone} {sealVariant}"
+                style={`--seal-size:${sealSize}px; --seal-font:${ringFontPx}px; --rotation:${rotationMs}ms;`}
+                role="button"
+                tabindex="0"
+                on:click={onClick.action}
+                on:keydown={(e) => handleActionKeydown(e, onClick.action)}
+                aria-label={onClick.ariaLabel ?? badge.label}
+              >
+                <span class="ring {rotationMs > 0 ? 'spin' : ''}" aria-hidden="true">
+                  {#each sealChars as char, index (index)}
+                    <span class="char" style={`--angle:${(1 / sealChars.length) * index}turn;`}>{char}</span>
+                  {/each}
+                </span>
+
+                <span class="center" aria-hidden="true">
+                  <span class="center-pill">
+                    {#if iconName}
+                      <VisBadgeIcon
+                        name={iconName}
+                        size={centerIcon}
+                        bg="var(--seal-solid)"
+                        fg="#ffffff"
+                        bgOpacity={1}
+                      />
+                    {/if}
+                  </span>
+                </span>
+              </span>
             {:else}
               <span
                 class="seal {tone} {sealVariant}"
@@ -188,7 +247,7 @@
               </span>
             {/if}
           {:else}
-            {#if onClick && href}
+            {#if clickKind === 'link' && href}
               <a
                 class="prio {tone} {bigVariant} {bigShowLabel ? 'with-label' : ''}"
                 style={`--prio-size:${roundRenderSize}px; --prio-text-size:${roundTextSize}px;`}
@@ -212,6 +271,31 @@
                   {/if}
                 </span>
               </a>
+            {:else if clickKind === 'action' && onClick && 'action' in onClick}
+              <span
+                class="prio {tone} {bigVariant} {bigShowLabel ? 'with-label' : ''}"
+                style={`--prio-size:${roundRenderSize}px; --prio-text-size:${roundTextSize}px;`}
+                role="button"
+                tabindex="0"
+                on:click={onClick.action}
+                on:keydown={(e) => handleActionKeydown(e, onClick.action)}
+                aria-label={onClick.ariaLabel ?? badge.label}
+              >
+                <span class="prio-inner" aria-hidden="true">
+                  {#if iconName}
+                    <VisBadgeIcon
+                      name={iconName}
+                      size={roundIconSize}
+                      bg={bigVariant === 'solid' ? '#ffffff' : 'var(--prio-solid)'}
+                      bgOpacity={1}
+                      fg={bigVariant === 'solid' ? 'var(--prio-solid)' : '#ffffff'}
+                    />
+                  {/if}
+                  {#if bigShowLabel}
+                    <span class="prio-text">{rawLabel}</span>
+                  {/if}
+                </span>
+              </span>
             {:else}
               <span
                 class="prio {tone} {bigVariant} {bigShowLabel ? 'with-label' : ''}"
@@ -238,7 +322,7 @@
             {/if}
           {/if}
         {:else}
-          {#if onClick && href}
+          {#if clickKind === 'link' && href}
             <a
               class="badge {tone} {variant} {effectiveType === 'mini' ? 'mini' : ''} interactive"
               href={href}
@@ -259,6 +343,28 @@
               {/if}
               <span class="label">{badge.label}</span>
             </a>
+          {:else if clickKind === 'action' && onClick && 'action' in onClick}
+            <span
+              class="badge {tone} {variant} {effectiveType === 'mini' ? 'mini' : ''} interactive"
+              role="button"
+              tabindex="0"
+              on:click={onClick.action}
+              on:keydown={(e) => handleActionKeydown(e, onClick.action)}
+              aria-label={onClick.ariaLabel ?? badge.label}
+            >
+              {#if iconName}
+                <span class="icon" aria-hidden="true">
+                  <VisBadgeIcon
+                    name={iconName}
+                    size={pillIconSize}
+                    bg={variant === 'outlined' ? 'var(--badge-solid)' : '#ffffff'}
+                    fg={variant === 'outlined' ? '#ffffff' : 'var(--badge-solid)'}
+                    bgOpacity={1}
+                  />
+                </span>
+              {/if}
+              <span class="label">{badge.label}</span>
+            </span>
           {:else}
             <span
               class="badge {tone} {variant} {effectiveType === 'mini' ? 'mini' : ''} interactive"
@@ -296,13 +402,15 @@
 
         {#if onClick}
           <span class="tip-hint" aria-label="Click for more">
-            <span>Click for more</span>
-            <svg class="tip-hint-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M14 5h5v5h-2V8.4l-6.3 6.3-1.4-1.4L15.6 7H14V5ZM5 7h6v2H7v10h10v-4h2v6H5V7Z"
-                fill="currentColor"
-              />
-            </svg>
+            <span>{clickHint}</span>
+            {#if clickKind === 'link' && external}
+              <svg class="tip-hint-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M14 5h5v5h-2V8.4l-6.3 6.3-1.4-1.4L15.6 7H14V5ZM5 7h6v2H7v10h10v-4h2v6H5V7Z"
+                  fill="currentColor"
+                />
+              </svg>
+            {/if}
           </span>
         {/if}
       </span>
@@ -310,7 +418,7 @@
   {:else}
     {#if effectiveType === 'big'}
       {#if bigStyle === 'seal'}
-        {#if onClick && href}
+      {#if clickKind === 'link' && href}
           <a
             class="seal {tone} {sealVariant}"
             style={`--seal-size:${sealSize}px; --seal-font:${ringFontPx}px; --rotation:${rotationMs}ms;`}
@@ -333,6 +441,30 @@
               </span>
             </span>
           </a>
+      {:else if clickKind === 'action' && onClick && 'action' in onClick}
+        <span
+          class="seal {tone} {sealVariant}"
+          style={`--seal-size:${sealSize}px; --seal-font:${ringFontPx}px; --rotation:${rotationMs}ms;`}
+          role="button"
+          tabindex="0"
+          on:click={onClick.action}
+          on:keydown={(e) => handleActionKeydown(e, onClick.action)}
+          aria-label={onClick.ariaLabel ?? badge.label}
+        >
+          <span class="ring {rotationMs > 0 ? 'spin' : ''}" aria-hidden="true">
+            {#each sealChars as char, index (index)}
+              <span class="char" style={`--angle:${(1 / sealChars.length) * index}turn;`}>{char}</span>
+            {/each}
+          </span>
+
+          <span class="center" aria-hidden="true">
+            <span class="center-pill">
+              {#if iconName}
+                <VisBadgeIcon name={iconName} size={centerIcon} bg="var(--seal-solid)" fg="#ffffff" bgOpacity={1} />
+              {/if}
+            </span>
+          </span>
+        </span>
         {:else}
           <span
             class="seal {tone} {sealVariant}"
@@ -357,7 +489,7 @@
           </span>
         {/if}
       {:else}
-        {#if onClick && href}
+      {#if clickKind === 'link' && href}
           <a
             class="prio {tone} {bigVariant} {bigShowLabel ? 'with-label' : ''}"
             style={`--prio-size:${roundRenderSize}px; --prio-text-size:${roundTextSize}px;`}
@@ -381,6 +513,31 @@
               {/if}
             </span>
           </a>
+      {:else if clickKind === 'action' && onClick && 'action' in onClick}
+        <span
+          class="prio {tone} {bigVariant} {bigShowLabel ? 'with-label' : ''}"
+          style={`--prio-size:${roundRenderSize}px; --prio-text-size:${roundTextSize}px;`}
+          role="button"
+          tabindex="0"
+          on:click={onClick.action}
+          on:keydown={(e) => handleActionKeydown(e, onClick.action)}
+          aria-label={onClick.ariaLabel ?? badge.label}
+        >
+          <span class="prio-inner" aria-hidden="true">
+            {#if iconName}
+              <VisBadgeIcon
+                name={iconName}
+                size={roundIconSize}
+                bg={bigVariant === 'solid' ? '#ffffff' : 'var(--prio-solid)'}
+                bgOpacity={1}
+                fg={bigVariant === 'solid' ? 'var(--prio-solid)' : '#ffffff'}
+              />
+            {/if}
+            {#if bigShowLabel}
+              <span class="prio-text">{rawLabel}</span>
+            {/if}
+          </span>
+        </span>
         {:else}
           <span
             class="prio {tone} {bigVariant} {bigShowLabel ? 'with-label' : ''}"
@@ -461,8 +618,8 @@
     padding: var(--badge-pad-y) var(--badge-pad-x);
     border-radius: 16px;
     border: var(--badge-border-w) solid transparent;
-    font-weight: 500;
-    font-size: 14px;
+    font-weight: 550;
+    font-size: 12px;
     line-height: 1;
     user-select: none;
     outline: none;
@@ -597,7 +754,7 @@
     --badge-border-w: 0px; /* remove invisible 1px border so adjacent minis can touch */
     border-color: transparent; /* hide outlined border in collapsed state */
     background: transparent; /* no pill in collapsed state */
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .badge.mini .label {
@@ -685,7 +842,7 @@
 
   .prio-text {
     font-size: var(--prio-text-size, 10px);
-    font-weight: 500;
+    font-weight: 550;
     letter-spacing: 0.02em;
     line-height: 1.05;
     color: var(--prio-text);
@@ -806,8 +963,8 @@
     color: var(--seal-ring-fg);
     opacity: 0.92;
     text-transform: uppercase;
-    letter-spacing: 0.07em;
-    font-weight: 400;
+    letter-spacing: 0.10em;
+    font-weight: 550;
   }
 
   @keyframes rotation {

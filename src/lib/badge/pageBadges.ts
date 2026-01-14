@@ -32,3 +32,9 @@ export const BOX_PLOTS_BADGE: BadgeData = {
   intent: 'INFORMATION'
 };
 
+export const DISCRETE_SCALES_BADGE: BadgeData = {
+  label: 'Discrete scales',
+  description:
+    'The first set of socio-economic factors use categorical values where the x-axis is non-linear.',
+  intent: 'INFORMATION'
+};
