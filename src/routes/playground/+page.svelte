@@ -1,7 +1,8 @@
 <script lang="ts">
   import NavigationBar from '$lib/components/NavigationBar.svelte';
   import Badge from '$lib/badge/Badge.svelte';
-  import type { BadgeData } from '$lib/badge/types';
+  import MiniBadges from '$lib/badge/MiniBadges.svelte';
+  import type { BadgeData, BadgeOnClick } from '$lib/badge/types';
 
   const samples: BadgeData[] = [
     {
@@ -28,6 +29,10 @@
       intent: 'INFORMATION'
     }
   ];
+
+  const openDataClick: BadgeOnClick = { href: 'https://google.com', external: true };
+  const infoClick: BadgeOnClick = { href: '/', external: false };
+  const onClickById: Record<string, BadgeOnClick> = { '2': openDataClick, '31': infoClick };
 </script>
 
 <NavigationBar />
@@ -44,7 +49,11 @@
       <div class="badge-row">
         {#each samples as badge (badge.id)}
           <div class="badge-block">
-            <Badge {badge} variant="filled" />
+            <Badge
+              {badge}
+              variant="filled"
+              onClick={badge.id === '2' ? openDataClick : badge.id === '31' ? infoClick : null}
+            />
           </div>
         {/each}
       </div>
@@ -55,12 +64,23 @@
       <div class="badge-row">
         {#each samples as badge (badge.id)}
           <div class="badge-block">
-            <Badge {badge} variant="outlined" />
+            <Badge
+              {badge}
+              variant="outlined"
+              onClick={badge.id === '2' ? openDataClick : badge.id === '31' ? infoClick : null}
+            />
           </div>
         {/each}
       </div>
     </section>
   </div>
+
+  <section class="col mini-section" aria-label="Mini badges">
+    <h2 class="section-title">Mini</h2>
+    <div class="mini-demo">
+      <MiniBadges badges={samples} fixed={false} expandDirection="right" {onClickById} />
+    </div>
+  </section>
 </main>
 
 <style>
@@ -101,6 +121,17 @@
     background: rgba(255, 255, 255, 0.6);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
+  }
+
+  .mini-section {
+    margin-top: 18px;
+  }
+
+  .mini-demo {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    min-height: 44px;
   }
 
   .section-title {

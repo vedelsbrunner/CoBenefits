@@ -49,15 +49,15 @@
     position: absolute;
     z-index: 60;
     width: max-content;
-    max-width: min(360px, 70vw);
-    padding: 10px 12px;
-    border-radius: 10px;
+    max-width: min(280px, 64vw);
+    padding: 7px 9px;
+    border-radius: 9px;
     border: 1px solid rgba(17, 24, 39, 0.14);
     background: rgba(17, 24, 39, 0.96);
     color: #ffffff;
-    box-shadow: 0 12px 32px rgba(17, 24, 39, 0.22);
+    box-shadow: 0 10px 24px rgba(17, 24, 39, 0.2);
     font-size: 12px;
-    line-height: 1.35;
+    line-height: 1.3;
 
     opacity: 0;
     transform: translateY(-6px);
@@ -110,8 +110,8 @@
 
   .fb-arrow {
     position: absolute;
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
     background: rgba(17, 24, 39, 0.96);
     border-left: 1px solid rgba(17, 24, 39, 0.14);
     border-top: 1px solid rgba(17, 24, 39, 0.14);
@@ -120,28 +120,28 @@
 
   .fb-tooltip.top .fb-arrow {
     left: 50%;
-    bottom: -5px;
-    margin-left: -5px;
+    bottom: -4px;
+    margin-left: -4px;
   }
 
   .fb-tooltip.bottom .fb-arrow {
     left: 50%;
-    top: -5px;
-    margin-left: -5px;
+    top: -4px;
+    margin-left: -4px;
     transform: rotate(225deg);
   }
 
   .fb-tooltip.left .fb-arrow {
     top: 50%;
-    right: -5px;
-    margin-top: -5px;
+    right: -4px;
+    margin-top: -4px;
     transform: rotate(135deg);
   }
 
   .fb-tooltip.right .fb-arrow {
     top: 50%;
-    left: -5px;
-    margin-top: -5px;
+    left: -4px;
+    margin-top: -4px;
     transform: rotate(-45deg);
   }
 </style>
