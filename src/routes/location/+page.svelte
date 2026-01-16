@@ -31,7 +31,7 @@
 
     import NavigationBar from "$lib/components/NavigationBar.svelte";
     import Badge from '$lib/badge/Badge.svelte';
-    import { AGGREGATED_DATA_BADGE, CORRELATION_NOT_CAUSATION_BADGE } from '$lib/badge/pageBadges';
+    import { AGGREGATED_DATA_BADGE, CORRELATION_NOT_CAUSATION_BADGE } from '$lib/badge/badges';
     import {
         getAllCBAllDatazones, getAllCBForOneLAD,
         getAverageCBGroupedByLAD,

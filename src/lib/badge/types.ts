@@ -1,3 +1,5 @@
+import type { BadgeIconName } from './icons/BadgeIcon.svelte';
+
 export type BadgeIntent = 'CONFIRMATION' | 'INFORMATION' | 'WARNING';
 
 export type BadgeHintIcon = 'download';
@@ -47,6 +49,10 @@ export interface BadgeData {
   label: string;
   description?: string;
   intent?: BadgeIntent;
+  /**
+   * Optional icon override (used when the intent icon isn't the best fit).
+   */
+  icon?: BadgeIconName;
   /**
    * Optional grouping/category for downstream filtering/analytics.
    * (Some badge definitions include this field.)

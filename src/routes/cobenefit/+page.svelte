@@ -43,14 +43,19 @@
 
     import NavigationBar from "$lib/components/NavigationBar.svelte";
     import Badge from '$lib/badge/Badge.svelte';
-    import type { BadgeData } from '$lib/badge/types';
-    import { BACKGROUND_READING_BADGE, MAJOR_FINDING_BADGE, OPEN_DATA_BADGE, RAW_DATA_AVAILABLE_BADGE } from '$lib/badge/badges';
     import {
+        BACKGROUND_READING_BADGE,
         AGGREGATED_DATA_BADGE,
         BOX_PLOTS_BADGE,
         CORRELATION_NOT_CAUSATION_BADGE,
-        DISCRETE_SCALES_BADGE
-    } from '$lib/badge/pageBadges';
+        DISCRETE_SCALES_BADGE,
+        INTERACTIVE_BADGE,
+        MAJOR_FINDING_BADGE,
+        MODELLED_DATA_BADGE,
+        OPEN_DATA_BADGE,
+        PER_CAPITA_MAP_BADGE,
+        RAW_DATA_AVAILABLE_BADGE
+    } from '$lib/badge/badges';
 
     import total from '$lib/icons/total.png';
     import per_capita from '$lib/icons/per_capita.png';
@@ -73,13 +78,6 @@
     const coBenefitLabel = COBENEFS.find(d => d.id === coBenefit)?.label ?? coBenefit;
     const coBenefitDef = DEFINITIONS.find(d => d.id === coBenefit)?.def ?? coBenefit;
 
-    const INTERACTIVE_BADGE: BadgeData = {
-        id: 'interactive',
-        label: 'Interactive',
-        intent: 'INFORMATION',
-        description:
-            'This map is interactive. You can pan and zoom, and click areas to explore values.\nMap tiles © Stadia Maps, © OpenMapTiles, © OpenStreetMap contributors.'
-    };
     let fullData;
     let LADAveragedData;
     let SEFData;
@@ -681,6 +679,7 @@
                     <Badge badge={BACKGROUND_READING_BADGE} />
                     <Badge badge={OPEN_DATA_BADGE} />
                     <Badge badge={RAW_DATA_AVAILABLE_BADGE} onClick={{ action: exportData, hint: { icon: 'download', text: 'Click to download the data' } }} />
+                    <Badge badge={MODELLED_DATA_BADGE} />
                 </div>
 
             </div>
@@ -863,12 +862,14 @@
                     <!--                            <span class="tooltip-text">This chart uses total values. i.e. shows the total benefit/cost for all of the UK.</span>-->
                     <!--                        </div>-->
                     <!--                    </div>-->
+                    <!--
                     <div class="aggregation-icon-container2">
                         <div class="tooltip-wrapper">
                             <img class="aggregation-icon" src="{per_capita}" alt="icon"/>
                             <span class="tooltip-text">This chart uses per capita values. i.e. show the cost/benefit per person in each LAD.</span>
                         </div>
                     </div>
+                    -->
 
                     {#if map}
                         <div id="legend">
@@ -881,8 +882,9 @@
                         {/if}
                         <div id="map" class="{loadingMap ? 'chart-hidden' : ''}" bind:this={mapDiv}></div>
                     </div>
-                    <div class="chart-badges" aria-label="Map information badges">
-                        <Badge badge={INTERACTIVE_BADGE} variant="outlined" />
+                    <div class="chart-badges map-info-badges" aria-label="Map information badges">
+                        <Badge badge={PER_CAPITA_MAP_BADGE} variant="filled" />
+                        <Badge badge={INTERACTIVE_BADGE} variant="filled" />
                     </div>
                 </div>
             </div>
@@ -907,11 +909,26 @@
 
                     <!-- Legend -->
                     <div id="se-legend" class="legend-box">
+                        <!--
                         <div class="aggregation-icon-container2">
                             <div class="tooltip-wrapper">
                                 <img class="aggregation-icon" src="{per_capita}" alt="icon"/>
                                 <span class="tooltip-text">These charts use per capita values. i.e. show the cost/benefit per person in each LAD.</span>
                             </div>
+                        </div>
+                        -->
+                        <div class="legend-badge-bottom-right" aria-label="Legend badges">
+                            <Badge
+                                badge={{
+                                    id: 'per-capita-legend',
+                                    label: 'Per capita',
+                                    intent: 'INFORMATION',
+                                    description:
+                                        'These charts use per capita values. i.e. show the cost/benefit per person in each LAD.'
+                                }}
+                                variant="outlined"
+                                type="mini"
+                            />
                         </div>
 
                         <strong style="margin-bottom: 0.8rem;">Legend:</strong> <br/>
@@ -1012,6 +1029,10 @@
         gap: 0px;
         margin-top: 6px;
         pointer-events: auto;
+    }
+
+    .map-info-badges {
+        gap: 3px;
     }
 
     .disclaimer-badges {
@@ -1251,10 +1272,18 @@
 
     .legend-box {
         margin-bottom: 2rem;
+        position: relative;
         padding: 0.75rem;
         background-color: #f0f0f0;
         border-radius: 8px;
         font-size: 0.9rem;
+    }
+
+    .legend-badge-bottom-right {
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        pointer-events: auto;
     }
 
     .legend-list {

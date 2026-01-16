@@ -1,9 +1,9 @@
 <script lang="ts">
   import FlowbiteTooltip from '$lib/components/FlowbiteTooltip.svelte';
-  import VisBadgeIcon from './icons/VisBadgeIcon.svelte';
+  import BadgeIcon from './icons/BadgeIcon.svelte';
   import { base } from '$app/paths';
   import type { BadgeData, BadgeHint, BadgeHintIcon, BadgeIntent, BadgeOnClick } from './types';
-  import type { VisBadgeIconName } from './icons/VisBadgeIcon.svelte';
+  import type { BadgeIconName } from './icons/BadgeIcon.svelte';
 
   export type BadgeType = 'mini' | 'normal' | 'big';
   export type BadgeTone = 'neutral' | 'success' | 'info' | 'warning';
@@ -49,7 +49,7 @@
     return 'neutral';
   }
 
-  function intentToIcon(intent?: BadgeIntent): VisBadgeIconName | null {
+  function intentToIcon(intent?: BadgeIntent): BadgeIconName | null {
     if (!intent) return null;
     if (intent === 'CONFIRMATION') return 'Confirmation';
     if (intent === 'INFORMATION') return 'Info';
@@ -59,7 +59,7 @@
 
   $: intent = toIntent(badge?.intent);
   $: tone = intentToTone(intent);
-  $: iconName = intentToIcon(intent);
+  $: iconName = badge?.icon ?? intentToIcon(intent);
 
   $: effectiveType = mini ? 'mini' : type;
 
@@ -191,7 +191,7 @@
                 <span class="center" aria-hidden="true">
                   <span class="center-pill">
                     {#if iconName}
-                      <VisBadgeIcon
+                      <BadgeIcon
                         name={iconName}
                         size={centerIcon}
                         bg="var(--seal-solid)"
@@ -221,7 +221,7 @@
                 <span class="center" aria-hidden="true">
                   <span class="center-pill">
                     {#if iconName}
-                      <VisBadgeIcon
+                      <BadgeIcon
                         name={iconName}
                         size={centerIcon}
                         bg="var(--seal-solid)"
@@ -249,7 +249,7 @@
                 <span class="center" aria-hidden="true">
                   <span class="center-pill">
                     {#if iconName}
-                      <VisBadgeIcon
+                      <BadgeIcon
                         name={iconName}
                         size={centerIcon}
                         bg="var(--seal-solid)"
@@ -273,7 +273,7 @@
               >
                 <span class="prio-inner" aria-hidden="true">
                   {#if iconName}
-                    <VisBadgeIcon
+                    <BadgeIcon
                       name={iconName}
                       size={roundIconSize}
                       bg={bigVariant === 'solid' ? '#ffffff' : 'var(--prio-solid)'}
@@ -296,7 +296,7 @@
               >
                 <span class="prio-inner" aria-hidden="true">
                   {#if iconName}
-                    <VisBadgeIcon
+                    <BadgeIcon
                       name={iconName}
                       size={roundIconSize}
                       bg={bigVariant === 'solid' ? '#ffffff' : 'var(--prio-solid)'}
@@ -317,7 +317,7 @@
               >
                 <span class="prio-inner" aria-hidden="true">
                   {#if iconName}
-                    <VisBadgeIcon
+                    <BadgeIcon
                       name={iconName}
                       size={roundIconSize}
                       bg={bigVariant === 'solid' ? '#ffffff' : 'var(--prio-solid)'}
@@ -341,7 +341,7 @@
             >
               {#if iconName}
                 <span class="icon" aria-hidden="true">
-                  <VisBadgeIcon
+                  <BadgeIcon
                     name={iconName}
                     size={pillIconSize}
                     bg={variant === 'outlined' ? 'var(--badge-solid)' : '#ffffff'}
@@ -363,7 +363,7 @@
             >
               {#if iconName}
                 <span class="icon" aria-hidden="true">
-                  <VisBadgeIcon
+                  <BadgeIcon
                     name={iconName}
                     size={pillIconSize}
                     bg={variant === 'outlined' ? 'var(--badge-solid)' : '#ffffff'}
@@ -383,7 +383,7 @@
             >
               {#if iconName}
                 <span class="icon" aria-hidden="true">
-                  <VisBadgeIcon
+                  <BadgeIcon
                     name={iconName}
                     size={pillIconSize}
                     bg={variant === 'outlined' ? 'var(--badge-solid)' : '#ffffff'}
@@ -453,7 +453,7 @@
             <span class="center" aria-hidden="true">
               <span class="center-pill">
                 {#if iconName}
-                  <VisBadgeIcon name={iconName} size={centerIcon} bg="var(--seal-solid)" fg="#ffffff" bgOpacity={1} />
+                  <BadgeIcon name={iconName} size={centerIcon} bg="var(--seal-solid)" fg="#ffffff" bgOpacity={1} />
                 {/if}
               </span>
             </span>
@@ -477,7 +477,7 @@
           <span class="center" aria-hidden="true">
             <span class="center-pill">
               {#if iconName}
-                <VisBadgeIcon name={iconName} size={centerIcon} bg="var(--seal-solid)" fg="#ffffff" bgOpacity={1} />
+                <BadgeIcon name={iconName} size={centerIcon} bg="var(--seal-solid)" fg="#ffffff" bgOpacity={1} />
               {/if}
             </span>
           </span>
@@ -499,7 +499,7 @@
             <span class="center" aria-hidden="true">
               <span class="center-pill">
                 {#if iconName}
-                  <VisBadgeIcon name={iconName} size={centerIcon} bg="var(--seal-solid)" fg="#ffffff" bgOpacity={1} />
+                  <BadgeIcon name={iconName} size={centerIcon} bg="var(--seal-solid)" fg="#ffffff" bgOpacity={1} />
                 {/if}
               </span>
             </span>
@@ -517,7 +517,7 @@
           >
             <span class="prio-inner" aria-hidden="true">
               {#if iconName}
-                <VisBadgeIcon
+                <BadgeIcon
                   name={iconName}
                   size={roundIconSize}
                   bg={bigVariant === 'solid' ? '#ffffff' : 'var(--prio-solid)'}
@@ -540,7 +540,7 @@
         >
           <span class="prio-inner" aria-hidden="true">
             {#if iconName}
-              <VisBadgeIcon
+              <BadgeIcon
                 name={iconName}
                 size={roundIconSize}
                 bg={bigVariant === 'solid' ? '#ffffff' : 'var(--prio-solid)'}
@@ -561,7 +561,7 @@
           >
             <span class="prio-inner" aria-hidden="true">
               {#if iconName}
-                <VisBadgeIcon
+                <BadgeIcon
                   name={iconName}
                   size={roundIconSize}
                   bg={bigVariant === 'solid' ? '#ffffff' : 'var(--prio-solid)'}
@@ -585,7 +585,7 @@
         >
           {#if iconName}
             <span class="icon" aria-hidden="true">
-              <VisBadgeIcon
+              <BadgeIcon
                 name={iconName}
                 size={pillIconSize}
                 bg={variant === 'outlined' ? 'var(--badge-solid)' : '#ffffff'}
@@ -605,7 +605,7 @@
         >
           {#if iconName}
             <span class="icon" aria-hidden="true">
-              <VisBadgeIcon
+              <BadgeIcon
                 name={iconName}
                 size={pillIconSize}
                 bg={variant === 'outlined' ? 'var(--badge-solid)' : '#ffffff'}

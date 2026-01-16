@@ -46,6 +46,7 @@
   }
 
   .fb-tooltip {
+    display: none;
     position: absolute;
     z-index: 60;
     width: max-content;
@@ -66,6 +67,7 @@
   }
 
   .fb-tooltip.open {
+    display: block;
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
