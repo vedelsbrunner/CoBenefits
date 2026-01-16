@@ -6,6 +6,7 @@
     import { base } from '$app/paths';
     import participationSheetUrl from './Participation_Information_Sheet.pdf?url';
     import posthog from 'posthog-js';
+    import BadgeFeedbackModal from '$lib/badge/BadgeFeedbackModal.svelte';
 
     let showBanner = false;
     let showEmailInput = false;
@@ -136,6 +137,7 @@
     {/if}
 
     
+  <BadgeFeedbackModal />
   <slot/>
   
   <svelte:head>

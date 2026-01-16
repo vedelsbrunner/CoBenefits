@@ -6,6 +6,7 @@
   import { page } from '$app/stores';
   import { onDestroy } from 'svelte';
   import posthog from 'posthog-js';
+  import { recordBadgeInteraction } from './feedback';
   import type { BadgeData, BadgeHint, BadgeHintIcon, BadgeIntent, BadgeOnClick } from './types';
   import type { BadgeIconName } from './icons/BadgeIcon.svelte';
 
@@ -35,6 +36,7 @@
   export let variant: BadgeVariant = 'filled';
   export let mini: boolean = false;
   export let onClick: BadgeOnClick | null = null;
+  export let analytics: boolean = true;
 
   function toIntent(value: unknown): BadgeIntent | undefined {
     if (typeof value !== 'string') return undefined;
@@ -71,6 +73,7 @@
   // ----- Analytics (PostHog) -----
   let hoverStartMs: number | null = null;
   let hoverMode: 'mouse' | 'focus' | null = null;
+  const MIN_INTERACTION_DWELL_MS = 300;
 
   function nowMs() {
     // performance.now() is monotonic and ideal for durations; fallback is fine.
@@ -78,6 +81,7 @@
   }
 
   function safeCapture(event: string, properties: Record<string, unknown> = {}) {
+    if (!analytics) return;
     if (!browser) return;
     try {
       posthog.capture(event, properties);
@@ -110,6 +114,27 @@
     if (hoverStartMs == null || hoverMode !== mode) return;
     const durationMs = Math.max(0, nowMs() - hoverStartMs);
     safeCapture('badge_hover_duration', baseProps({ mode, duration_ms: durationMs, ended_by: endedBy }));
+    // Only count a badge as "interacted" if the user dwelled on it long enough.
+    if (analytics && endedBy === 'leave' && durationMs >= MIN_INTERACTION_DWELL_MS) {
+      recordBadgeInteraction(
+        {
+          id: badgeId,
+          label: badge?.label ?? null,
+          render: effectiveType,
+          variant,
+          intent: intent ?? null,
+          icon: iconName ?? null,
+          bigStyle: effectiveType === 'big' ? bigStyle : null,
+          bigVariant: effectiveType === 'big' ? bigVariant : null,
+          bigSize: effectiveType === 'big' ? bigSize : null,
+          sealVariant: effectiveType === 'big' && bigStyle === 'seal' ? sealVariant : null,
+          sealSize: effectiveType === 'big' && bigStyle === 'seal' ? sealSize : null,
+          sealFontScale: effectiveType === 'big' && bigStyle === 'seal' ? sealFontScale : null,
+          rotationMs: effectiveType === 'big' && bigStyle === 'seal' ? rotationMs : null
+        },
+        3
+      );
+    }
     hoverStartMs = null;
     hoverMode = null;
   }
