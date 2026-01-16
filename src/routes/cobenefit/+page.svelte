@@ -54,7 +54,8 @@
         MODELLED_DATA_BADGE,
         OPEN_DATA_BADGE,
         PER_CAPITA_MAP_BADGE,
-        RAW_DATA_AVAILABLE_BADGE
+        RAW_DATA_AVAILABLE_BADGE,
+        TOTAL_VALUES_BADGE
     } from '$lib/badge/badges';
 
     import total from '$lib/icons/total.png';
@@ -796,12 +797,12 @@
                                 five-year periods for all of UK.</p>
                         </div>
                     {/if}
-<!--                    <div class="aggregation-icon-container">-->
+                    <div class="aggregation-icon-container">
 <!--                        <div class="tooltip-wrapper">-->
 <!--                            <img class="aggregation-icon" src="{total}" alt="icon"/>-->
 <!--                            <span class="tooltip-text">This chart uses total values. i.e. shows the total benefit/cost for all of the UK.</span>-->
 <!--                        </div>-->
-<!--                    </div>-->
+                    </div>
                     <div class="chart-shell" style="height: 280px;">
                         {#if loadingOverviewCharts}
                             <ChartSkeleton height={280}/>
@@ -833,17 +834,15 @@
                         <p class="description">The x-axis represents the value of costs, while the y-axis shows the
                             number of data zones falling within each benefit range.</p>
                     {/if}
-                    <div class="aggregation-icon-container">
-                        <div class="tooltip-wrapper">
-                            <img class="aggregation-icon" src="{total}" alt="icon"/>
-                            <span class="tooltip-text">This chart uses total values. i.e. shows the total benefit/cost for all of the UK.</span>
-                        </div>
-                    </div>
                     <div class="chart-shell" style="height: 280px;">
                         {#if loadingOverviewCharts}
                             <ChartSkeleton height={280}/>
                         {/if}
+                        <br><br>
                         <div class="plot-bar {loadingOverviewCharts ? 'chart-hidden' : ''}" bind:this={plotDist}></div>
+                        <div class="chart-badge-bottom-right" aria-label="Chart information badges">
+                            <Badge badge={TOTAL_VALUES_BADGE} variant="outlined" type="mini" />
+                        </div>
                     </div>
                     <br>
                     <!-- <p class="explanation">``Bumps'' in the chart indicate </p> -->
@@ -883,7 +882,7 @@
                         <div id="map" class="{loadingMap ? 'chart-hidden' : ''}" bind:this={mapDiv}></div>
                     </div>
                     <div class="chart-badges map-info-badges" aria-label="Map information badges">
-                        <Badge badge={PER_CAPITA_MAP_BADGE} variant="filled" />
+                        <Badge  badge={PER_CAPITA_MAP_BADGE}  variant="filled"/>
                         <Badge badge={INTERACTIVE_BADGE} variant="filled" />
                     </div>
                 </div>
@@ -1033,6 +1032,13 @@
 
     .map-info-badges {
         gap: 3px;
+    }
+
+    .chart-badge-bottom-right {
+        position: absolute;
+        right: 0px;
+        bottom: 30px;
+        pointer-events: auto;
     }
 
     .disclaimer-badges {

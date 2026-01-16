@@ -163,7 +163,6 @@
         <label for="css">Violin</label><br>
         <input type="radio" on:change={onChange} name="visType" value="distribution">
         <label for="javascript">Distribution</label>
-
     </div>
 
 <!--    <div>map</div>-->

@@ -77,3 +77,10 @@ export const DISCRETE_SCALES_BADGE: BadgeData = {
   description: 'The first set of socio-economic factors use categorical values where the x-axis is non-linear.',
   intent: 'INFORMATION'
 };
+
+export const TOTAL_VALUES_BADGE: BadgeData = {
+  id: 'total-values',
+  label: 'Total values',
+  intent: 'INFORMATION',
+  description: 'This chart uses total values. i.e. shows the total benefit/cost for all of the UK.'
+};

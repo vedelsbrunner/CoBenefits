@@ -31,7 +31,7 @@
 
     import NavigationBar from "$lib/components/NavigationBar.svelte";
     import Badge from '$lib/badge/Badge.svelte';
-    import { AGGREGATED_DATA_BADGE, CORRELATION_NOT_CAUSATION_BADGE } from '$lib/badge/badges';
+    // (Chart badges currently shown only on the co-benefit pages)
     import {
         getAllCBAllDatazones, getAllCBForOneLAD,
         getAverageCBGroupedByLAD,
@@ -1728,12 +1728,7 @@ console.log("selectedDatum", selectedDatum)
                                             <div class="plot" bind:this={SEFPlotPerCB[sef.id]}>
                                             </div>
                                         </div>
-                                        {#if !SEF_CATEGORICAL.includes(sef.id)}
-                                            <div class="chart-badges" aria-label="Chart badges">
-                                                <Badge badge={CORRELATION_NOT_CAUSATION_BADGE} variant="outlined" type="mini" />
-                                                <Badge badge={AGGREGATED_DATA_BADGE} variant="outlined" type="mini" />
-                                            </div>
-                                        {/if}
+                                        <!-- chart badges intentionally disabled on this page -->
                                     </div>
                                 </div>
                             {/if}
