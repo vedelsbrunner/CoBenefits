@@ -75,7 +75,9 @@ export class MapUK {
 			// style: {version: 8, sources: {}, layers: []},
 			center: this.center, // starting position [lng, lat]
 			zoom: zoomLevel, // starting zoom
-			preserveDrawingBuffer: true
+			preserveDrawingBuffer: true,
+			// Disable MapLibre's default attribution control ("info" icon / attribution UI).
+			attributionControl: false
 		});
 
 		this.tooltip = document.createElement('div');
