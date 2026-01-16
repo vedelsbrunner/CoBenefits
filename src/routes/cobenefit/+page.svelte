@@ -43,6 +43,7 @@
 
     import NavigationBar from "$lib/components/NavigationBar.svelte";
     import Badge from '$lib/badge/Badge.svelte';
+    import type { BadgeData } from '$lib/badge/types';
     import { BACKGROUND_READING_BADGE, MAJOR_FINDING_BADGE, OPEN_DATA_BADGE, RAW_DATA_AVAILABLE_BADGE } from '$lib/badge/badges';
     import {
         AGGREGATED_DATA_BADGE,
@@ -71,6 +72,14 @@
     const coBenefit = data.coBenefit;
     const coBenefitLabel = COBENEFS.find(d => d.id === coBenefit)?.label ?? coBenefit;
     const coBenefitDef = DEFINITIONS.find(d => d.id === coBenefit)?.def ?? coBenefit;
+
+    const INTERACTIVE_BADGE: BadgeData = {
+        id: 'interactive',
+        label: 'Interactive',
+        intent: 'INFORMATION',
+        description:
+            'This map is interactive. You can pan and zoom, and click areas to explore values.\nMap tiles © Stadia Maps, © OpenMapTiles, © OpenStreetMap contributors.'
+    };
     let fullData;
     let LADAveragedData;
     let SEFData;
@@ -871,6 +880,9 @@
                             <ChartSkeleton height={600}/>
                         {/if}
                         <div id="map" class="{loadingMap ? 'chart-hidden' : ''}" bind:this={mapDiv}></div>
+                    </div>
+                    <div class="chart-badges" aria-label="Map information badges">
+                        <Badge badge={INTERACTIVE_BADGE} variant="outlined" />
                     </div>
                 </div>
             </div>
