@@ -2,6 +2,10 @@
   import FlowbiteTooltip from '$lib/components/FlowbiteTooltip.svelte';
   import BadgeIcon from './icons/BadgeIcon.svelte';
   import { base } from '$app/paths';
+  import { browser } from '$app/environment';
+  import { page } from '$app/stores';
+  import { onDestroy } from 'svelte';
+  import posthog from 'posthog-js';
   import type { BadgeData, BadgeHint, BadgeHintIcon, BadgeIntent, BadgeOnClick } from './types';
   import type { BadgeIconName } from './icons/BadgeIcon.svelte';
 
@@ -62,6 +66,85 @@
   $: iconName = badge?.icon ?? intentToIcon(intent);
 
   $: effectiveType = mini ? 'mini' : type;
+  $: badgeId = badge?.id != null ? String(badge.id) : String(badge?.label ?? '');
+
+  // ----- Analytics (PostHog) -----
+  let hoverStartMs: number | null = null;
+  let hoverMode: 'mouse' | 'focus' | null = null;
+
+  function nowMs() {
+    // performance.now() is monotonic and ideal for durations; fallback is fine.
+    return typeof performance !== 'undefined' && typeof performance.now === 'function' ? performance.now() : Date.now();
+  }
+
+  function safeCapture(event: string, properties: Record<string, unknown> = {}) {
+    if (!browser) return;
+    try {
+      posthog.capture(event, properties);
+    } catch {
+      // analytics should never break UI
+    }
+  }
+
+  function baseProps(extra: Record<string, unknown> = {}) {
+    return {
+      badge_id: badgeId,
+      badge_label: badge?.label ?? null,
+      badge_type: badge?.type ?? null,
+      badge_intent: intent ?? null,
+      badge_render: effectiveType,
+      badge_click_kind: clickKind,
+      pathname: $page.url.pathname,
+      ...extra
+    };
+  }
+
+  function startHover(mode: 'mouse' | 'focus') {
+    if (hoverStartMs != null) return;
+    hoverStartMs = nowMs();
+    hoverMode = mode;
+    safeCapture('badge_hover', baseProps({ mode }));
+  }
+
+  function endHover(mode: 'mouse' | 'focus', endedBy: 'leave' | 'destroy' = 'leave') {
+    if (hoverStartMs == null || hoverMode !== mode) return;
+    const durationMs = Math.max(0, nowMs() - hoverStartMs);
+    safeCapture('badge_hover_duration', baseProps({ mode, duration_ms: durationMs, ended_by: endedBy }));
+    hoverStartMs = null;
+    hoverMode = null;
+  }
+
+  function handleMouseEnter() {
+    startHover('mouse');
+  }
+
+  function handleMouseLeave() {
+    endHover('mouse');
+  }
+
+  function handleFocusIn() {
+    // optional: counts keyboard focus as "time spent" too (mode=focus)
+    startHover('focus');
+  }
+
+  function handleFocusOut() {
+    endHover('focus');
+  }
+
+  function handleClick(event: MouseEvent) {
+    safeCapture(
+      'badge_click',
+      baseProps({
+        button: typeof event.button === 'number' ? event.button : null
+      })
+    );
+  }
+
+  onDestroy(() => {
+    if (hoverStartMs != null && hoverMode) {
+      endHover(hoverMode, 'destroy');
+    }
+  });
 
   // ----- Normal/mini pill -----
   $: pillIconSize = effectiveType === 'mini' ? 22 : 20;
@@ -170,7 +253,14 @@
       placement="top"
       openDelayMs={effectiveType === 'big' ? 120 : effectiveType === 'mini' ? 420 : 80}
     >
-      <span slot="trigger">
+      <span
+        slot="trigger"
+        on:mouseenter={handleMouseEnter}
+        on:mouseleave={handleMouseLeave}
+        on:focusin={handleFocusIn}
+        on:focusout={handleFocusOut}
+        on:click={handleClick}
+      >
         {#if effectiveType === 'big'}
           {#if bigStyle === 'seal'}
             {#if clickKind === 'link' && href}
@@ -433,69 +523,54 @@
       </span>
     </FlowbiteTooltip>
   {:else}
-    {#if effectiveType === 'big'}
-      {#if bigStyle === 'seal'}
-      {#if clickKind === 'link' && href}
-          <a
-            class="seal {tone} {sealVariant}"
-            style={`--seal-size:${sealSize}px; --seal-font:${ringFontPx}px; --rotation:${rotationMs}ms;`}
-            href={href}
-            target={external ? '_blank' : undefined}
-            rel={external ? 'noopener noreferrer' : undefined}
-            aria-label={badge.label}
-          >
-            <span class="ring {rotationMs > 0 ? 'spin' : ''}" aria-hidden="true">
-              {#each sealChars as char, index (index)}
-                <span class="char" style={`--angle:${(1 / sealChars.length) * index}turn;`}>{char}</span>
-              {/each}
-            </span>
-
-            <span class="center" aria-hidden="true">
-              <span class="center-pill">
-                {#if iconName}
-                  <BadgeIcon name={iconName} size={centerIcon} bg="var(--seal-solid)" fg="#ffffff" bgOpacity={1} />
-                {/if}
+    <span
+      on:mouseenter={handleMouseEnter}
+      on:mouseleave={handleMouseLeave}
+      on:focusin={handleFocusIn}
+      on:focusout={handleFocusOut}
+      on:click={handleClick}
+    >
+      {#if effectiveType === 'big'}
+        {#if bigStyle === 'seal'}
+        {#if clickKind === 'link' && href}
+            <a
+              class="seal {tone} {sealVariant}"
+              style={`--seal-size:${sealSize}px; --seal-font:${ringFontPx}px; --rotation:${rotationMs}ms;`}
+              href={href}
+              target={external ? '_blank' : undefined}
+              rel={external ? 'noopener noreferrer' : undefined}
+              aria-label={badge.label}
+            >
+              <span class="ring {rotationMs > 0 ? 'spin' : ''}" aria-hidden="true">
+                {#each sealChars as char, index (index)}
+                  <span class="char" style={`--angle:${(1 / sealChars.length) * index}turn;`}>{char}</span>
+                {/each}
               </span>
-            </span>
-          </a>
-      {:else if clickKind === 'action' && onClick && 'action' in onClick}
-        <span
-          class="seal {tone} {sealVariant}"
-          style={`--seal-size:${sealSize}px; --seal-font:${ringFontPx}px; --rotation:${rotationMs}ms;`}
-          role="button"
-          tabindex="0"
-          on:click={onClick.action}
-          on:keydown={(e) => handleActionKeydown(e, onClick.action)}
-          aria-label={onClick.ariaLabel ?? badge.label}
-        >
-          <span class="ring {rotationMs > 0 ? 'spin' : ''}" aria-hidden="true">
-            {#each sealChars as char, index (index)}
-              <span class="char" style={`--angle:${(1 / sealChars.length) * index}turn;`}>{char}</span>
-            {/each}
-          </span>
-
-          <span class="center" aria-hidden="true">
-            <span class="center-pill">
-              {#if iconName}
-                <BadgeIcon name={iconName} size={centerIcon} bg="var(--seal-solid)" fg="#ffffff" bgOpacity={1} />
-              {/if}
-            </span>
-          </span>
-        </span>
-        {:else}
+  
+              <span class="center" aria-hidden="true">
+                <span class="center-pill">
+                  {#if iconName}
+                    <BadgeIcon name={iconName} size={centerIcon} bg="var(--seal-solid)" fg="#ffffff" bgOpacity={1} />
+                  {/if}
+                </span>
+              </span>
+            </a>
+        {:else if clickKind === 'action' && onClick && 'action' in onClick}
           <span
             class="seal {tone} {sealVariant}"
             style={`--seal-size:${sealSize}px; --seal-font:${ringFontPx}px; --rotation:${rotationMs}ms;`}
-            role="note"
+            role="button"
             tabindex="0"
-            aria-label={badge.label}
+            on:click={onClick.action}
+            on:keydown={(e) => handleActionKeydown(e, onClick.action)}
+            aria-label={onClick.ariaLabel ?? badge.label}
           >
             <span class="ring {rotationMs > 0 ? 'spin' : ''}" aria-hidden="true">
               {#each sealChars as char, index (index)}
                 <span class="char" style={`--angle:${(1 / sealChars.length) * index}turn;`}>{char}</span>
               {/each}
             </span>
-
+  
             <span class="center" aria-hidden="true">
               <span class="center-pill">
                 {#if iconName}
@@ -504,16 +579,61 @@
               </span>
             </span>
           </span>
-        {/if}
-      {:else}
-      {#if clickKind === 'link' && href}
-          <a
+          {:else}
+            <span
+              class="seal {tone} {sealVariant}"
+              style={`--seal-size:${sealSize}px; --seal-font:${ringFontPx}px; --rotation:${rotationMs}ms;`}
+              role="note"
+              tabindex="0"
+              aria-label={badge.label}
+            >
+              <span class="ring {rotationMs > 0 ? 'spin' : ''}" aria-hidden="true">
+                {#each sealChars as char, index (index)}
+                  <span class="char" style={`--angle:${(1 / sealChars.length) * index}turn;`}>{char}</span>
+                {/each}
+              </span>
+  
+              <span class="center" aria-hidden="true">
+                <span class="center-pill">
+                  {#if iconName}
+                    <BadgeIcon name={iconName} size={centerIcon} bg="var(--seal-solid)" fg="#ffffff" bgOpacity={1} />
+                  {/if}
+                </span>
+              </span>
+            </span>
+          {/if}
+        {:else}
+        {#if clickKind === 'link' && href}
+            <a
+              class="prio {tone} {bigVariant} with-label"
+              style={`--prio-size:${roundRenderSize}px; --prio-text-size:${roundTextSize}px;`}
+              href={href}
+              target={external ? '_blank' : undefined}
+              rel={external ? 'noopener noreferrer' : undefined}
+              aria-label={badge.label}
+            >
+              <span class="prio-inner" aria-hidden="true">
+                {#if iconName}
+                  <BadgeIcon
+                    name={iconName}
+                    size={roundIconSize}
+                    bg={bigVariant === 'solid' ? '#ffffff' : 'var(--prio-solid)'}
+                    bgOpacity={1}
+                    fg={bigVariant === 'solid' ? 'var(--prio-solid)' : '#ffffff'}
+                  />
+                {/if}
+                <span class="prio-text">{rawLabel}</span>
+              </span>
+            </a>
+        {:else if clickKind === 'action' && onClick && 'action' in onClick}
+          <span
             class="prio {tone} {bigVariant} with-label"
             style={`--prio-size:${roundRenderSize}px; --prio-text-size:${roundTextSize}px;`}
-            href={href}
-            target={external ? '_blank' : undefined}
-            rel={external ? 'noopener noreferrer' : undefined}
-            aria-label={badge.label}
+            role="button"
+            tabindex="0"
+            on:click={onClick.action}
+            on:keydown={(e) => handleActionKeydown(e, onClick.action)}
+            aria-label={onClick.ariaLabel ?? badge.label}
           >
             <span class="prio-inner" aria-hidden="true">
               {#if iconName}
@@ -527,97 +647,75 @@
               {/if}
               <span class="prio-text">{rawLabel}</span>
             </span>
-          </a>
-      {:else if clickKind === 'action' && onClick && 'action' in onClick}
-        <span
-          class="prio {tone} {bigVariant} with-label"
-          style={`--prio-size:${roundRenderSize}px; --prio-text-size:${roundTextSize}px;`}
-          role="button"
-          tabindex="0"
-          on:click={onClick.action}
-          on:keydown={(e) => handleActionKeydown(e, onClick.action)}
-          aria-label={onClick.ariaLabel ?? badge.label}
-        >
-          <span class="prio-inner" aria-hidden="true">
+          </span>
+          {:else}
+            <span
+              class="prio {tone} {bigVariant} with-label"
+              style={`--prio-size:${roundRenderSize}px; --prio-text-size:${roundTextSize}px;`}
+              role="note"
+              tabindex="0"
+              aria-label={badge.label}
+            >
+              <span class="prio-inner" aria-hidden="true">
+                {#if iconName}
+                  <BadgeIcon
+                    name={iconName}
+                    size={roundIconSize}
+                    bg={bigVariant === 'solid' ? '#ffffff' : 'var(--prio-solid)'}
+                    bgOpacity={1}
+                    fg={bigVariant === 'solid' ? 'var(--prio-solid)' : '#ffffff'}
+                  />
+                {/if}
+                <span class="prio-text">{rawLabel}</span>
+              </span>
+            </span>
+          {/if}
+        {/if}
+      {:else}
+        {#if onClick && href}
+          <a
+            class="badge {tone} {variant} {effectiveType === 'mini' ? 'mini' : ''} interactive"
+            href={href}
+            target={external ? '_blank' : undefined}
+            rel={external ? 'noopener noreferrer' : undefined}
+            aria-label={badge.label}
+          >
             {#if iconName}
-              <BadgeIcon
-                name={iconName}
-                size={roundIconSize}
-                bg={bigVariant === 'solid' ? '#ffffff' : 'var(--prio-solid)'}
-                bgOpacity={1}
-                fg={bigVariant === 'solid' ? 'var(--prio-solid)' : '#ffffff'}
-              />
-            {/if}
-            <span class="prio-text">{rawLabel}</span>
-          </span>
-        </span>
-        {:else}
-          <span
-            class="prio {tone} {bigVariant} with-label"
-            style={`--prio-size:${roundRenderSize}px; --prio-text-size:${roundTextSize}px;`}
-            role="note"
-            tabindex="0"
-            aria-label={badge.label}
-          >
-            <span class="prio-inner" aria-hidden="true">
-              {#if iconName}
+              <span class="icon" aria-hidden="true">
                 <BadgeIcon
                   name={iconName}
-                  size={roundIconSize}
-                  bg={bigVariant === 'solid' ? '#ffffff' : 'var(--prio-solid)'}
+                  size={pillIconSize}
+                  bg={variant === 'outlined' ? 'var(--badge-solid)' : '#ffffff'}
+                  fg={variant === 'outlined' ? '#ffffff' : 'var(--badge-solid)'}
                   bgOpacity={1}
-                  fg={bigVariant === 'solid' ? 'var(--prio-solid)' : '#ffffff'}
                 />
-              {/if}
-              <span class="prio-text">{rawLabel}</span>
-            </span>
+              </span>
+            {/if}
+            <span class="label">{badge.label}</span>
+          </a>
+        {:else}
+          <span
+            class="badge {tone} {variant} {effectiveType === 'mini' ? 'mini' : ''} interactive"
+            role="note"
+            aria-label={badge.label}
+            tabindex="0"
+          >
+            {#if iconName}
+              <span class="icon" aria-hidden="true">
+                <BadgeIcon
+                  name={iconName}
+                  size={pillIconSize}
+                  bg={variant === 'outlined' ? 'var(--badge-solid)' : '#ffffff'}
+                  fg={variant === 'outlined' ? '#ffffff' : 'var(--badge-solid)'}
+                  bgOpacity={1}
+                />
+              </span>
+            {/if}
+            <span class="label">{badge.label}</span>
           </span>
         {/if}
       {/if}
-    {:else}
-      {#if onClick && href}
-        <a
-          class="badge {tone} {variant} {effectiveType === 'mini' ? 'mini' : ''} interactive"
-          href={href}
-          target={external ? '_blank' : undefined}
-          rel={external ? 'noopener noreferrer' : undefined}
-          aria-label={badge.label}
-        >
-          {#if iconName}
-            <span class="icon" aria-hidden="true">
-              <BadgeIcon
-                name={iconName}
-                size={pillIconSize}
-                bg={variant === 'outlined' ? 'var(--badge-solid)' : '#ffffff'}
-                fg={variant === 'outlined' ? '#ffffff' : 'var(--badge-solid)'}
-                bgOpacity={1}
-              />
-            </span>
-          {/if}
-          <span class="label">{badge.label}</span>
-        </a>
-      {:else}
-        <span
-          class="badge {tone} {variant} {effectiveType === 'mini' ? 'mini' : ''} interactive"
-          role="note"
-          aria-label={badge.label}
-          tabindex="0"
-        >
-          {#if iconName}
-            <span class="icon" aria-hidden="true">
-              <BadgeIcon
-                name={iconName}
-                size={pillIconSize}
-                bg={variant === 'outlined' ? 'var(--badge-solid)' : '#ffffff'}
-                fg={variant === 'outlined' ? '#ffffff' : 'var(--badge-solid)'}
-                bgOpacity={1}
-              />
-            </span>
-          {/if}
-          <span class="label">{badge.label}</span>
-        </span>
-      {/if}
-    {/if}
+    </span>
   {/if}
 {/if}
 
