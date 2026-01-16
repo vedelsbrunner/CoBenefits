@@ -2,7 +2,7 @@
   import FlowbiteTooltip from '$lib/components/FlowbiteTooltip.svelte';
   import VisBadgeIcon from './icons/VisBadgeIcon.svelte';
   import { base } from '$app/paths';
-  import type { BadgeData, BadgeIntent, BadgeOnClick } from './types';
+  import type { BadgeData, BadgeHint, BadgeHintIcon, BadgeIntent, BadgeOnClick } from './types';
   import type { VisBadgeIconName } from './icons/VisBadgeIcon.svelte';
 
   export type BadgeType = 'mini' | 'normal' | 'big';
@@ -72,11 +72,15 @@
     return /^https?:\/\//i.test(href);
   }
 
-  function hasHref(click: BadgeOnClick | null): click is { href: string; external?: boolean; hint?: string } {
+  function hasHref(click: BadgeOnClick | null): click is { href: string; external?: boolean; hint?: BadgeHint } {
     return Boolean(click) && typeof (click as any).href === 'string';
   }
 
-  function hasAction(click: BadgeOnClick | null): click is { action: () => void; hint?: string; ariaLabel?: string } {
+  function hasAction(click: BadgeOnClick | null): click is {
+    action: () => void;
+    hint?: BadgeHint;
+    ariaLabel?: string;
+  } {
     return Boolean(click) && typeof (click as any).action === 'function';
   }
 
@@ -99,18 +103,28 @@
           })()
       : null;
 
-  $: clickHint =
-    onClick && 'hint' in onClick && typeof (onClick as any).hint === 'string' && (onClick as any).hint.trim()
-      ? (onClick as any).hint.trim()
-      : clickKind !== 'none'
-        ? 'Click for more'
-        : '';
+  function normalizeHint(hint: unknown): { text: string; icon: BadgeHintIcon | null } | null {
+    if (typeof hint === 'string') {
+      const text = hint.trim();
+      return text ? { text, icon: null } : null;
+    }
+    if (hint && typeof hint === 'object') {
+      const maybe = hint as any;
+      const text = typeof maybe.text === 'string' ? maybe.text.trim() : '';
+      const icon: BadgeHintIcon | null = maybe.icon === 'download' ? 'download' : null;
+      return text ? { text, icon } : null;
+    }
+    return null;
+  }
+
+  $: normalizedHint = onClick && 'hint' in onClick ? normalizeHint((onClick as any).hint) : null;
+  $: clickHintText = normalizedHint?.text ?? (clickKind !== 'none' ? 'Click for more' : '');
+  $: clickHintIcon = normalizedHint?.icon ?? null;
 
   // ----- Big: round -----
   export let bigStyle: BigStyle = 'round';
   export let bigVariant: BigRoundVariant = 'solid';
   export let bigSize: number = 44;
-  export let bigShowLabel: boolean = false;
 
   function fullLabel(label: unknown): string {
     const cleaned = String(label ?? '').trim();
@@ -119,9 +133,10 @@
 
   $: rawLabel = fullLabel(badge?.label);
   $: labelLen = rawLabel.length;
-  $: roundRenderSize = bigShowLabel ? Math.min(104, Math.max(bigSize, 70 + Math.max(0, labelLen - 12) * 1.4)) : bigSize;
-  $: roundIconSize = Math.round(roundRenderSize * (bigShowLabel ? 0.34 : 0.55));
-  $: roundTextSize = bigShowLabel ? (labelLen <= 12 ? 12 : labelLen <= 18 ? 11 : labelLen <= 26 ? 10 : 9) : 0;
+  // Big "round" badges always show the label; size is therefore label-aware.
+  $: roundRenderSize = Math.min(104, Math.max(bigSize, 70 + Math.max(0, labelLen - 12) * 1.4));
+  $: roundIconSize = Math.round(roundRenderSize * 0.34);
+  $: roundTextSize = labelLen <= 12 ? 12 : labelLen <= 18 ? 11 : labelLen <= 26 ? 10 : 9;
 
   // ----- Big: seal -----
   export let sealVariant: SealVariant = 'outlined';
@@ -249,7 +264,7 @@
           {:else}
             {#if clickKind === 'link' && href}
               <a
-                class="prio {tone} {bigVariant} {bigShowLabel ? 'with-label' : ''}"
+                class="prio {tone} {bigVariant} with-label"
                 style={`--prio-size:${roundRenderSize}px; --prio-text-size:${roundTextSize}px;`}
                 href={href}
                 target={external ? '_blank' : undefined}
@@ -266,14 +281,12 @@
                       fg={bigVariant === 'solid' ? 'var(--prio-solid)' : '#ffffff'}
                     />
                   {/if}
-                  {#if bigShowLabel}
-                    <span class="prio-text">{rawLabel}</span>
-                  {/if}
+                  <span class="prio-text">{rawLabel}</span>
                 </span>
               </a>
             {:else if clickKind === 'action' && onClick && 'action' in onClick}
               <span
-                class="prio {tone} {bigVariant} {bigShowLabel ? 'with-label' : ''}"
+                class="prio {tone} {bigVariant} with-label"
                 style={`--prio-size:${roundRenderSize}px; --prio-text-size:${roundTextSize}px;`}
                 role="button"
                 tabindex="0"
@@ -291,14 +304,12 @@
                       fg={bigVariant === 'solid' ? 'var(--prio-solid)' : '#ffffff'}
                     />
                   {/if}
-                  {#if bigShowLabel}
-                    <span class="prio-text">{rawLabel}</span>
-                  {/if}
+                  <span class="prio-text">{rawLabel}</span>
                 </span>
               </span>
             {:else}
               <span
-                class="prio {tone} {bigVariant} {bigShowLabel ? 'with-label' : ''}"
+                class="prio {tone} {bigVariant} with-label"
                 style={`--prio-size:${roundRenderSize}px; --prio-text-size:${roundTextSize}px;`}
                 role="note"
                 tabindex="0"
@@ -314,9 +325,7 @@
                       fg={bigVariant === 'solid' ? 'var(--prio-solid)' : '#ffffff'}
                     />
                   {/if}
-                  {#if bigShowLabel}
-                    <span class="prio-text">{rawLabel}</span>
-                  {/if}
+                  <span class="prio-text">{rawLabel}</span>
                 </span>
               </span>
             {/if}
@@ -402,7 +411,15 @@
 
         {#if onClick}
           <span class="tip-hint" aria-label="Click for more">
-            <span>{clickHint}</span>
+            {#if clickHintIcon === 'download'}
+              <svg class="tip-hint-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M12 3a1 1 0 0 1 1 1v9.59l2.3-2.3 1.4 1.42L12 18.41l-4.7-4.7 1.4-1.42 2.3 2.3V4a1 1 0 0 1 1-1Zm-7 16h14v2H5v-2Z"
+                  fill="currentColor"
+                />
+              </svg>
+            {/if}
+            <span>{clickHintText}</span>
             {#if clickKind === 'link' && external}
               <svg class="tip-hint-icon" viewBox="0 0 24 24" aria-hidden="true">
                 <path
@@ -491,7 +508,7 @@
       {:else}
       {#if clickKind === 'link' && href}
           <a
-            class="prio {tone} {bigVariant} {bigShowLabel ? 'with-label' : ''}"
+            class="prio {tone} {bigVariant} with-label"
             style={`--prio-size:${roundRenderSize}px; --prio-text-size:${roundTextSize}px;`}
             href={href}
             target={external ? '_blank' : undefined}
@@ -508,14 +525,12 @@
                   fg={bigVariant === 'solid' ? 'var(--prio-solid)' : '#ffffff'}
                 />
               {/if}
-              {#if bigShowLabel}
-                <span class="prio-text">{rawLabel}</span>
-              {/if}
+              <span class="prio-text">{rawLabel}</span>
             </span>
           </a>
       {:else if clickKind === 'action' && onClick && 'action' in onClick}
         <span
-          class="prio {tone} {bigVariant} {bigShowLabel ? 'with-label' : ''}"
+          class="prio {tone} {bigVariant} with-label"
           style={`--prio-size:${roundRenderSize}px; --prio-text-size:${roundTextSize}px;`}
           role="button"
           tabindex="0"
@@ -533,14 +548,12 @@
                 fg={bigVariant === 'solid' ? 'var(--prio-solid)' : '#ffffff'}
               />
             {/if}
-            {#if bigShowLabel}
-              <span class="prio-text">{rawLabel}</span>
-            {/if}
+            <span class="prio-text">{rawLabel}</span>
           </span>
         </span>
         {:else}
           <span
-            class="prio {tone} {bigVariant} {bigShowLabel ? 'with-label' : ''}"
+            class="prio {tone} {bigVariant} with-label"
             style={`--prio-size:${roundRenderSize}px; --prio-text-size:${roundTextSize}px;`}
             role="note"
             tabindex="0"
@@ -556,9 +569,7 @@
                   fg={bigVariant === 'solid' ? 'var(--prio-solid)' : '#ffffff'}
                 />
               {/if}
-              {#if bigShowLabel}
-                <span class="prio-text">{rawLabel}</span>
-              {/if}
+              <span class="prio-text">{rawLabel}</span>
             </span>
           </span>
         {/if}

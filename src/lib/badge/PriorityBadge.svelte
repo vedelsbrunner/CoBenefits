@@ -11,9 +11,8 @@
   export let badge: BadgeData;
   export let variant: BigRoundVariant = 'solid';
   export let size: number = 44;
-  export let showLabel: boolean = false;
   export let onClick: BadgeOnClick | null = null;
 </script>
 
-<Badge {badge} type="big" bigStyle="round" bigVariant={variant} bigSize={size} bigShowLabel={showLabel} {onClick} />
+<Badge {badge} type="big" bigStyle="round" bigVariant={variant} bigSize={size} {onClick} />
 

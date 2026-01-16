@@ -1,5 +1,14 @@
 export type BadgeIntent = 'CONFIRMATION' | 'INFORMATION' | 'WARNING';
 
+export type BadgeHintIcon = 'download';
+
+export type BadgeHint =
+  | string
+  | {
+      text: string;
+      icon?: BadgeHintIcon;
+    };
+
 export type BadgeOnClick =
   | {
       /**
@@ -16,7 +25,7 @@ export type BadgeOnClick =
       /**
        * Optional tooltip hint for link clicks.
        */
-      hint?: string;
+      hint?: BadgeHint;
     }
   | {
       /**
@@ -26,7 +35,7 @@ export type BadgeOnClick =
       /**
        * Optional tooltip hint for action clicks.
        */
-      hint?: string;
+      hint?: BadgeHint;
       /**
        * Optional aria label override for accessibility.
        */

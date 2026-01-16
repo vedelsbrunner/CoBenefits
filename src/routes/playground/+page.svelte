@@ -58,7 +58,7 @@
         <h3 class="section-title">Filled</h3>
         <div class="priority-row">
           {#each samples as badge (badge.id)}
-            <Badge {badge} type="big" bigStyle="round" bigVariant="solid" bigShowLabel onClick={clickFor(badge)} />
+            <Badge {badge} type="big" bigStyle="round" bigVariant="solid" onClick={clickFor(badge)} />
           {/each}
         </div>
       </section>
@@ -67,7 +67,7 @@
         <h3 class="section-title">Outlined</h3>
         <div class="priority-row">
           {#each samples as badge (badge.id)}
-            <Badge {badge} type="big" bigStyle="round" bigVariant="ring" bigShowLabel onClick={clickFor(badge)} />
+            <Badge {badge} type="big" bigStyle="round" bigVariant="ring" onClick={clickFor(badge)} />
           {/each}
         </div>
       </section>

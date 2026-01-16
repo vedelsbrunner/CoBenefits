@@ -671,7 +671,7 @@
                 <div class="header-badges">
                     <Badge badge={BACKGROUND_READING_BADGE} />
                     <Badge badge={OPEN_DATA_BADGE} />
-                    <Badge badge={RAW_DATA_AVAILABLE_BADGE} onClick={{ action: exportData, hint: 'Download raw data' }} />
+                    <Badge badge={RAW_DATA_AVAILABLE_BADGE} onClick={{ action: exportData, hint: { icon: 'download', text: 'Click to download the data' } }} />
                 </div>
 
             </div>
@@ -776,12 +776,8 @@
                                 <Badge
                                   badge={MAJOR_FINDING_BADGE}
                                   type="big"
-                                  bigStyle="seal"
+                                  bigStyle="round"
                                   bigVariant="solid"
-                                  sealVariant="filled"
-                                  bigShowLabel
-                                  sealSize={100}
-                                  rotationMs={80000}
                                 />
                             </div>
                         </div>
@@ -790,15 +786,6 @@
                         <div class="desc-row">
                             <p class="description">Each bar shows the predicted total costs in billion pounds for each
                                 five-year periods for all of UK.</p>
-                            <div class="desc-badges" aria-label="Badges">
-                                <Badge
-                                  badge={MAJOR_FINDING_BADGE}
-                                  type="big"
-                                  bigStyle="round"
-                                  bigVariant="solid"
-                                  bigShowLabel
-                                />
-                            </div>
                         </div>
                     {/if}
 <!--                    <div class="aggregation-icon-container">-->
