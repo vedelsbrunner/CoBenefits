@@ -48,7 +48,7 @@
   .fb-tooltip {
     display: none;
     position: absolute;
-    z-index: 60;
+    z-index: 2000;
     width: max-content;
     max-width: min(280px, 64vw);
     padding: 7px 9px;

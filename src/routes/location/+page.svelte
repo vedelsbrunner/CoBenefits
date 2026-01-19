@@ -1862,6 +1862,7 @@ console.log("selectedDatum", selectedDatum)
         bottom: 12px;
         margin-top: 0;
         opacity: 0.98;
+        z-index: 2000;
     }
 
     .header-badges {
