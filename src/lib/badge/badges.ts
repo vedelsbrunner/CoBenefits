@@ -1,7 +1,7 @@
 import type { BadgeData } from './types';
 
 export const MAJOR_FINDING_BADGE: BadgeData = {
-  label: 'Major Finding',
+  label: 'Key Finding',
   description: 'todo',
   intent: 'CONFIRMATION',
   type: 'CONTEXT'

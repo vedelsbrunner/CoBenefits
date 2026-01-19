@@ -73,7 +73,7 @@
   // ----- Analytics (PostHog) -----
   let hoverStartMs: number | null = null;
   let hoverMode: 'mouse' | 'focus' | null = null;
-  const MIN_INTERACTION_DWELL_MS = 300;
+  const MIN_INTERACTION_DWELL_MS = 1000;
 
   function nowMs() {
     // performance.now() is monotonic and ideal for durations; fallback is fine.
@@ -571,7 +571,7 @@
                   <span class="char" style={`--angle:${(1 / sealChars.length) * index}turn;`}>{char}</span>
                 {/each}
               </span>
-  
+
               <span class="center" aria-hidden="true">
                 <span class="center-pill">
                   {#if iconName}
@@ -595,7 +595,7 @@
                 <span class="char" style={`--angle:${(1 / sealChars.length) * index}turn;`}>{char}</span>
               {/each}
             </span>
-  
+
             <span class="center" aria-hidden="true">
               <span class="center-pill">
                 {#if iconName}
@@ -617,7 +617,7 @@
                   <span class="char" style={`--angle:${(1 / sealChars.length) * index}turn;`}>{char}</span>
                 {/each}
               </span>
-  
+
               <span class="center" aria-hidden="true">
                 <span class="center-pill">
                   {#if iconName}

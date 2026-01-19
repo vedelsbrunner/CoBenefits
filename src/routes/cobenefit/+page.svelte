@@ -795,6 +795,14 @@
                         <div class="desc-row">
                             <p class="description">Each bar shows the predicted total costs in billion pounds for each
                                 five-year periods for all of UK.</p>
+                            <div class="desc-badges" aria-label="Badges">
+                                <Badge
+                                  badge={MAJOR_FINDING_BADGE}
+                                  type="big"
+                                  bigStyle="round"
+                                  bigVariant="solid"
+                                />
+                            </div>
                         </div>
                     {/if}
                     <div class="aggregation-icon-container">
