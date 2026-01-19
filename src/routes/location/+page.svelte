@@ -32,6 +32,16 @@
     import NavigationBar from "$lib/components/NavigationBar.svelte";
     import ChartSkeleton from "$lib/components/ChartSkeleton.svelte";
     import Badge from '$lib/badge/Badge.svelte';
+    import {
+        BACKGROUND_READING_BADGE,
+        COMPARISON_AVERAGE_BADGE,
+        INTERACTIVE_BADGE,
+        INVISIBLE_SMALL_AREAS_BADGE,
+        MODELLED_DATA_BADGE,
+        OPEN_DATA_BADGE,
+        RAW_DATA_AVAILABLE_BADGE,
+        SMOOTHED_DATA_BADGE
+    } from '$lib/badge/badges';
     // (Chart badges currently shown only on the co-benefit pages)
     import {
         getAllCBAllDatazones, getAllCBForOneLAD,
@@ -142,7 +152,7 @@
         const LADEngPath = `/LAD/Eng_Wales_LSOA_LADs.csv`
         const LADNIPath = `/LAD/NI_DZ_LAD.csv`
         const LADScotlandPath = `/LAD/Scotland_DZ_LA.csv`
-        
+
         await csv(LADEngPath).then(data => {
             for (let row of data) {
                 LADToName[row.LAD22CD] = row.LAD22NM
@@ -585,7 +595,7 @@ console.log("selectedDatum", selectedDatum)
                         }),
                         Plot.text([selectedDatum], {
                             x: "total",
-                            y: 0, 
+                            y: 0,
                             text: d => LSOACodeToName[d.Lookup_Value] || d.Lookup_Value,
                             dy: -10,
                             fill: COBENEFS_SCALE2(selectedDatum.co_benefit_type)[1],
@@ -596,7 +606,7 @@ console.log("selectedDatum", selectedDatum)
                         })
                         ]
                     : []),
-                                        
+
                 Plot.axisX({label: "Total Co-Benefit (£ million)", labelAnchor: "center", labelArrow: false}),
                 Plot.axisY({label: "Number of Datazones",labelArrow: false}),
                 Plot.ruleX([0], {stroke: "#333", strokeWidth: 1.75})
@@ -1308,6 +1318,15 @@ console.log("selectedDatum", selectedDatum)
 
             <p class="description">Explore how this local authority will benefit from achieving Net Zero and learn about
                 the characteristics of its households.</p>
+            <div class="header-badges" aria-label="Page information badges">
+                <Badge badge={BACKGROUND_READING_BADGE} />
+                <Badge badge={OPEN_DATA_BADGE} />
+                <Badge
+                    badge={RAW_DATA_AVAILABLE_BADGE}
+                    onClick={{ action: exportData, hint: { icon: 'download', text: 'Click to download the data' } }}
+                />
+                <Badge badge={MODELLED_DATA_BADGE} />
+            </div>
 
             <div class="radio-set">
                 Compare this Local Authority District (LAD) against:<br/>
@@ -1372,8 +1391,9 @@ console.log("selectedDatum", selectedDatum)
                                 <span class="waffle-caption">Per capita costs</span>
                             {/if}
                         </div>
-                        <span class="waffle-caption"><i>Grey bars indicate average value for <span
-                                class="nation-label">{compareTo}</span></i></span>
+                        <div class="waffle-caption">
+                            <Badge badge={COMPARISON_AVERAGE_BADGE} variant="filled" />
+                        </div>
 
                     </div>
                 </div>
@@ -1429,12 +1449,15 @@ console.log("selectedDatum", selectedDatum)
                     received across all local
                     authorities in <span class="nation-label">{compareTo}</span> (grey).</p>
                 <br>
-                <div class="chart-shell" style="height: {DIST_PLOT_HEIGHT}px;">
+                <div class="chart-shell with-bottom-badges" style={!dataLoaded ? `height: ${DIST_PLOT_HEIGHT}px;` : ''}>
                     {#if !dataLoaded}
                         <ChartSkeleton height={DIST_PLOT_HEIGHT}/>
                     {:else}
                         {@html renderDistributionPlot(totalCBAllZones, oneLADData)}
                     {/if}
+                    <div class="chart-badge-bottom-right" aria-label="Chart information badges">
+                        <Badge badge={COMPARISON_AVERAGE_BADGE} variant="filled" />
+                    </div>
                 </div>
 
                 <h3 class="component-title">11 types of co-benefit values (vs. <span
@@ -1442,22 +1465,27 @@ console.log("selectedDatum", selectedDatum)
                 <p class="description">Co-benefit values for {LADToName[LAD]} compared to average value of benefits
                     received across all local
                     authorities in <span class="nation-label">{compareTo}</span> (grey).</p>
-                <div class="chart-shell" style="height: {TALL_PLOT_HEIGHT}px;">
+                <div class="chart-shell with-bottom-badges" style={!dataLoaded ? `height: ${TALL_PLOT_HEIGHT}px;` : ''}>
                     {#if !dataLoaded}
                         <ChartSkeleton height={TALL_PLOT_HEIGHT}/>
                     {/if}
                     <div class="plot {dataLoaded ? '' : 'chart-hidden'}" bind:this={plotPerCb}></div>
+                    <div class="chart-badge-bottom-right" aria-label="Chart information badges">
+                        <Badge badge={COMPARISON_AVERAGE_BADGE} variant="filled" />
+                    </div>
                 </div>
             </div>
 
             <div class="component column">
                 <h3 class="component-title">Where is {LADToName[LAD]}?</h3>
                 <p class="description">{LADToName[LAD]} has been highlighted in dark grey on this UK map.</p>
-                <p class="description">*Scroll for zooming in and out</p>
                 <div id="map" bind:this={mapDiv}>
                     <!--                    <div class="badge-container">-->
                     <!--                        <img class="badge" src={zoomBadge} />-->
                     <!--                    </div>-->
+                </div>
+                <div class="chart-badges map-info-badges" aria-label="Map information badges">
+                    <Badge badge={INTERACTIVE_BADGE} variant="filled" />
                 </div>
             </div>
         </div>
@@ -1525,11 +1553,14 @@ console.log("selectedDatum", selectedDatum)
                     </div>
                 </div>
 
-                <div class="chart-shell" style="height: {TALL_PLOT_HEIGHT}px;">
+                <div class="chart-shell with-bottom-badges" style={!dataLoaded ? `height: ${TALL_PLOT_HEIGHT}px;` : ''}>
                     {#if !dataLoaded}
                         <ChartSkeleton height={TALL_PLOT_HEIGHT}/>
                     {/if}
                     <div class="plot side {dataLoaded ? '' : 'chart-hidden'}" bind:this={CBOverTimePLot}></div>
+                    <div class="chart-badge-bottom-right" aria-label="Chart information badges">
+                        <Badge badge={COMPARISON_AVERAGE_BADGE} variant="filled" />
+                    </div>
                 </div>
 
 
@@ -1558,7 +1589,7 @@ console.log("selectedDatum", selectedDatum)
                             <div class="legend-header" on:click={() => {
                                 const wasExpanded = expanded.has(CB.id);
                                 toggle(CB.id);
-                                
+
                                 if (!wasExpanded) {
                                     posthog.capture('cobenefit opened', {
                                         cobenefit: CB.label
@@ -1578,9 +1609,9 @@ console.log("selectedDatum", selectedDatum)
                             <div class="legend-description">
                                 <div style="height: 0.8em;"></div>
                                 {CB.def} <br>
-                                
+
                                 <a class="link" href="{base}/cobenefit?cobenefit={CB.id}" target="_blank" rel="noopener noreferrer" style= "color:{COBENEFS_SCALE(CB.id)}; text-decoration: underline">{CB.id} report page</a>
-                                
+
                             </div>
                             </div>
                             {/if}
@@ -1590,17 +1621,15 @@ console.log("selectedDatum", selectedDatum)
                     </div>
 
                 </div>
-                <div class="chart-shell" style="height: {TALL_PLOT_HEIGHT}px;">
+                <div class="chart-shell with-bottom-badges" style={!dataLoaded ? `height: ${TALL_PLOT_HEIGHT}px;` : ''}>
                     {#if !dataLoaded}
                         <ChartSkeleton height={TALL_PLOT_HEIGHT}/>
                     {/if}
                     <div class="plot side {dataLoaded ? '' : 'chart-hidden'}" bind:this={CBOverTimePerCBPLot}></div>
-                </div>
-                <!-- Disclaimer -->
-                <div id="main-disclaimer" class="disclaimer-box">
-                    <p style="margin: 0;"><strong>Some areas too small:</strong> Due to the nature of the
-                        co-benefits some values are very small in comparison
-                        to larger values so therefore are not visable on this plot. </p>
+                    <div class="chart-badge-bottom-right" aria-label="Warnings">
+                        <Badge badge={INVISIBLE_SMALL_AREAS_BADGE} variant="outlined" />
+                        <Badge badge={SMOOTHED_DATA_BADGE} variant="outlined" />
+                    </div>
                 </div>
             </div>
         </div>
@@ -1610,7 +1639,7 @@ console.log("selectedDatum", selectedDatum)
             <div id="vis-block">
             <div id="main-block">
                 <h3 class="section-title" style="align">What co-benefits would the LSOAs recieve?</h3>
-                <p class="description">The distribution plot below shows the predicted spread of benefits recieved or costs incurred by the LSOAs across {LADToName[LAD]}. 
+                <p class="description">The distribution plot below shows the predicted spread of benefits recieved or costs incurred by the LSOAs across {LADToName[LAD]}.
                     Select a co-benefit from the dropdown menu and explore the position of different datazones by using the search box.</p>
                 <div>
                     <div class="controls-container">
@@ -1653,11 +1682,11 @@ console.log("selectedDatum", selectedDatum)
                 <h3 class="component-title">LSOA Map</h3>
 
                 <p class="description">This map shows the total co-benefit values (£ millions) for each LSOA of {LADToName[LAD]}</p>
-                <div class="chart-shell" style="min-height: 520px;">
+                <div class="chart-shell" style={!dataLoaded ? 'height: 520px;' : ''}>
                     {#if !dataLoaded}
                         <ChartSkeleton height={520}/>
                     {/if}
-                    <div id="map-lsoa" class="{dataLoaded ? '' : 'chart-hidden'}" bind:this={mapLSOADiv}></div>
+                    <div id="map-lsoa" style="height: 520px;" class="{dataLoaded ? '' : 'chart-hidden'}" bind:this={mapLSOADiv}></div>
                 </div>
             </div>
 
@@ -1793,6 +1822,34 @@ console.log("selectedDatum", selectedDatum)
         margin-top: 6px;
         pointer-events: auto;
         opacity: 0.98;
+    }
+
+    .chart-badge-bottom-right {
+        position: absolute;
+        right: -8px;
+        bottom: 0px;
+        z-index: 3;
+        pointer-events: auto;
+        opacity: 0.98;
+        display: flex;
+        gap: 6px;
+    }
+
+    .map-info-badges {
+        gap: 3px;
+    }
+
+    .header-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+        margin-bottom: 2px;
+    }
+
+    /* Reserve space so bottom-right badges don't overlap axis labels */
+    .chart-shell.with-bottom-badges {
+        padding-bottom: 55px;
     }
 
     .header-row {
@@ -2066,7 +2123,7 @@ console.log("selectedDatum", selectedDatum)
         }
 
     .search-container {
-        position: relative; 
+        position: relative;
         }
 
         .search-results {
@@ -2098,12 +2155,12 @@ console.log("selectedDatum", selectedDatum)
         .legend-items-grid {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap: 0rem 1.5rem; 
+    gap: 0rem 1.5rem;
 }
 
     .controls-container {
         display: flex;
-        gap: 40px; 
+        gap: 40px;
         align-items: flex-start;
         flex-wrap: wrap;
         }

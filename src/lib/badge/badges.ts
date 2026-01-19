@@ -7,6 +7,29 @@ export const MAJOR_FINDING_BADGE: BadgeData = {
   type: 'CONTEXT'
 };
 
+export const INVISIBLE_SMALL_AREAS_BADGE: BadgeData = {
+  id: 'invisible-small-areas',
+  label: 'Invisible Small Areas',
+  intent: 'WARNING',
+  description:
+    'Some areas too small: Due to the nature of the co-benefits some values are very small in comparison to larger values so therefore are not visable on this plot.'
+};
+
+export const SMOOTHED_DATA_BADGE: BadgeData = {
+  id: 'smoothed-data',
+  label: 'Smoothed Data',
+  intent: 'INFORMATION',
+  description: 'The curve between points is smoothed to show the general trends.'
+};
+
+export const COMPARISON_AVERAGE_BADGE: BadgeData = {
+  id: 'comparison-average',
+  label: 'UK Average',
+  intent: 'INFORMATION',
+  description:
+    'Light grey indicates the comparison average (e.g., UK average, or the selected comparison option).'
+};
+
 export const BACKGROUND_READING_BADGE: BadgeData = {
   label: 'Background Reading Available',
   description: 'todo',
@@ -33,7 +56,8 @@ export const INTERACTIVE_BADGE: BadgeData = {
   label: 'Interactive',
   intent: 'INFORMATION',
   icon: 'Interactive',
-  description: 'This map is interactive. You can pan and zoom, and click areas to explore values.'
+  description:
+    'This map is interactive. You can pan and zoom, and click areas to explore values. *Scroll for zooming in and out.'
 };
 
 export const PER_CAPITA_MAP_BADGE: BadgeData = {

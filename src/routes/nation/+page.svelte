@@ -25,12 +25,25 @@
         // addSpinner,
         SEF_SCALE,
         getIconFromCobenef, COBENEFS_SCALE2,
-        SE_FACTORS, SEF_LEVEL_LABELS, type Nation
+        SE_FACTORS, SEF_LEVEL_LABELS, type Nation,
+        convertToCSV,
+        downloadCSV
     } from "../../globals";
     import {getRandomSubarray} from "$lib/utils";
 
     import NavigationBar from "$lib/components/NavigationBar.svelte";
     import ChartSkeleton from "$lib/components/ChartSkeleton.svelte";
+    import Badge from '$lib/badge/Badge.svelte';
+    import {
+        BACKGROUND_READING_BADGE,
+        COMPARISON_AVERAGE_BADGE,
+        INTERACTIVE_BADGE,
+        INVISIBLE_SMALL_AREAS_BADGE,
+        MODELLED_DATA_BADGE,
+        OPEN_DATA_BADGE,
+        RAW_DATA_AVAILABLE_BADGE,
+        SMOOTHED_DATA_BADGE
+    } from '$lib/badge/badges';
     import {
         getAllCBAllDatazones, getAllCBForOneLAD, getAllCBForOneNation,
         getAverageCBGroupedByLAD,
@@ -884,7 +897,17 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
 
         posthog.capture('clicked nation filter', {
         nation: compareTo
-        })   
+        })
+    }
+
+    function exportData() {
+        if (!allCBsAllZones) return;
+        const rows = allCBsAllZones.filter((d) => d.Nation === NATION);
+        rows.forEach((d) => {
+            delete d.scenario;
+        });
+        const csv = convertToCSV(rows);
+        downloadCSV(csv, `cobenefits_${NATION}.csv`);
     }
 
 </script>
@@ -913,30 +936,39 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
             <h1 class="page-title"> {NATION}</h1>
             <p class="description">Explore how this nation will benefit from achieving Net Zero and learn about
                 the characteristics of its households.</p>
+            <div class="header-badges" aria-label="Page information badges">
+                <Badge badge={BACKGROUND_READING_BADGE} />
+                <Badge badge={OPEN_DATA_BADGE} />
+                <Badge
+                    badge={RAW_DATA_AVAILABLE_BADGE}
+                    onClick={{ action: exportData, hint: { icon: 'download', text: 'Click to download the data' } }}
+                />
+                <Badge badge={MODELLED_DATA_BADGE} />
+            </div>
 
                 <div class="radio-set">
                     Compare {NATION} against:<br/>
-                  
+
                     {#if NATION !== 'UK'}
                       <input type="radio" on:change={onChangeComparison} name="compare" value="UK" checked>
                       <label class="nation-label">UK</label><br>
                     {/if}
-                  
+
                     {#if NATION !== 'England'}
                       <input type="radio" on:change={onChangeComparison} name="compare" value="England">
                       <label class="nation-label">England</label><br>
                     {/if}
-                  
+
                     {#if NATION !== 'Wales'}
                       <input type="radio" on:change={onChangeComparison} name="compare" value="Wales">
                       <label class="nation-label">Wales</label><br>
                     {/if}
-                  
+
                     {#if NATION !== 'Scotland'}
                       <input type="radio" on:change={onChangeComparison} name="compare" value="Scotland">
                       <label class="nation-label">Scotland</label><br>
                     {/if}
-                  
+
                     {#if NATION !== 'NI'}
                       <input type="radio" on:change={onChangeComparison} name="compare" value="NI">
                       <label class="nation-label">Northern Ireland</label><br>
@@ -990,8 +1022,9 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
                                 <span class="waffle-caption">Per capita costs</span>
                             {/if}
                         </div>
-                        <span class="waffle-caption"><i>Grey bars indicate average value for <span
-                                class="nation-label">{compareTo}</span></i></span>
+                        <div class="waffle-caption">
+                            <Badge badge={COMPARISON_AVERAGE_BADGE} variant="filled" />
+                        </div>
 
                     </div>
                 </div>
@@ -1024,12 +1057,15 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
                     received across all local
                     authorities in <span class="nation-label">{compareTo}</span> (grey).</p>
                 <br>
-                <div class="chart-shell" style="height: {DIST_PLOT_HEIGHT}px;">
+                <div class="chart-shell with-bottom-badges" style={!dataLoaded ? `height: ${DIST_PLOT_HEIGHT}px;` : ''}>
                     {#if !dataLoaded}
                         <ChartSkeleton height={DIST_PLOT_HEIGHT}/>
                     {:else}
                         {@html renderDistributionPlot(totalCBAllZones, oneNationData) }
                     {/if}
+                    <div class="chart-badge-bottom-right" aria-label="Chart information badges">
+                        <Badge badge={COMPARISON_AVERAGE_BADGE} variant="filled" />
+                    </div>
                 </div>
 
                 <h3 class="component-title">11 types of co-benefit values (vs. <span
@@ -1037,23 +1073,28 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
                 <p class="description">Total co-benefit values for {NATION} compared to total benefits/costs
                     received across all local
                     authorities in <span class="nation-label">{compareTo}</span> (grey).</p>
-                <div class="chart-shell" style="height: {PER_CB_PLOT_HEIGHT}px;">
+                <div class="chart-shell with-bottom-badges" style={!dataLoaded ? `height: ${PER_CB_PLOT_HEIGHT}px;` : ''}>
                     {#if !dataLoaded}
                         <ChartSkeleton height={PER_CB_PLOT_HEIGHT}/>
                     {/if}
                     <div class="plot {dataLoaded ? '' : 'chart-hidden'}" bind:this={plotPerCb}></div>
+                    <div class="chart-badge-bottom-right" aria-label="Chart information badges">
+                        <Badge badge={COMPARISON_AVERAGE_BADGE} variant="filled" />
+                    </div>
                 </div>
             </div>
 
             <div class="component column">
                 <h3 class="component-title">Total co-benefits across {NATION}</h3>
                 <p class="description">Click a region to visit the Local Authority Report Page</p>
-                <p class="description">*Scroll for zooming in and out</p>
-                <div class="chart-shell" style="height: 650px;">
+                <div class="chart-shell" style={!dataLoaded ? 'height: 650px;' : ''}>
                     {#if !dataLoaded}
                         <ChartSkeleton height={650}/>
                     {/if}
                     <div id="map" class="{dataLoaded ? '' : 'chart-hidden'}" bind:this={mapDiv}></div>
+                </div>
+                <div class="chart-badges map-info-badges" aria-label="Map information badges">
+                    <Badge badge={INTERACTIVE_BADGE} variant="filled" />
                 </div>
             </div>
         </div>
@@ -1088,11 +1129,14 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
                     </div>
                 </div>
 
-                <div class="chart-shell" style="height: {TEMP_PLOT_HEIGHT}px;">
+                <div class="chart-shell with-bottom-badges" style={!dataLoaded ? `height: ${TEMP_PLOT_HEIGHT}px;` : ''}>
                     {#if !dataLoaded}
                         <ChartSkeleton height={TEMP_PLOT_HEIGHT}/>
                     {/if}
                     <div class="plot side {dataLoaded ? '' : 'chart-hidden'}" bind:this={CBOverTimePLot}></div>
+                    <div class="chart-badge-bottom-right" aria-label="Chart information badges">
+                        <Badge badge={COMPARISON_AVERAGE_BADGE} variant="filled" />
+                    </div>
                 </div>
 
 
@@ -1111,7 +1155,7 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
                         intervals for each co-benefit. The curve between points is smoothed to show the general
                         trends.</p>
 
-                    <!-- Legend 
+                    <!-- Legend
                     <div id="main-legend" class="legend-box" style="margin-bottom: 5px;">
                         <strong style="margin-bottom: 0.5rem;">Legend:</strong> <br/>
                         <ul class="horizontal-legend-list" style="margin-bottom:5px">
@@ -1139,7 +1183,7 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
                             <div class="legend-header" on:click={() => {
                                 const wasExpanded = expanded.has(CB.id);
                                 toggle(CB.id);
-                                
+
                                 if (!wasExpanded) {
                                     posthog.capture('cobenefit opened', {
                                         cobenefit: CB.label
@@ -1159,9 +1203,9 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
                             <div class="legend-description">
                                 <div style="height: 0.8em;"></div>
                                 {CB.def} <br>
-                                
+
                                 <a class="link" href="{base}/cobenefit?cobenefit={CB.id}" target="_blank" rel="noopener noreferrer" style= "color:{COBENEFS_SCALE(CB.id)}; text-decoration: underline">{CB.id} report page</a>
-                                
+
                             </div>
                             </div>
                             {/if}
@@ -1171,17 +1215,15 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
                     </div>
 
                 </div>
-                <div class="chart-shell" style="height: {PER_CB_PLOT_HEIGHT}px;">
+                <div class="chart-shell with-bottom-badges" style={!dataLoaded ? `height: ${PER_CB_PLOT_HEIGHT}px;` : ''}>
                     {#if !dataLoaded}
                         <ChartSkeleton height={PER_CB_PLOT_HEIGHT}/>
                     {/if}
                     <div class="plot side {dataLoaded ? '' : 'chart-hidden'}" bind:this={CBOverTimePerCBPLot}></div>
-                </div>
-                <!-- Disclaimer -->
-                <div id="main-disclaimer" class="disclaimer-box">
-                    <p style="margin: 0;"><strong>Some areas too small:</strong> Due to the nature of the
-                        co-benefits some values are very small in comparison
-                        to larger values so therefore are not visable on this plot. </p>
+                    <div class="chart-badge-bottom-right" aria-label="Warnings">
+                        <Badge badge={INVISIBLE_SMALL_AREAS_BADGE} variant="outlined" />
+                        <Badge badge={SMOOTHED_DATA_BADGE} variant="outlined" />
+                    </div>
                 </div>
             </div>
         </div>
@@ -1203,7 +1245,7 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
                 <br>-->
 
 
-                <!-- Legend 
+                <!-- Legend
                 <div id="se-legend" class="legend-box">
                     <strong style="margin-bottom: 1rem;">Legend:</strong> <br/>
                     <ul class="legend-list">
@@ -1214,7 +1256,7 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
                     </ul>
                 </div>-->
 
-                <!-- Interpretation  
+                <!-- Interpretation
                 <div id="se-legend" class="legend-box">
                     <strong style="margin-bottom: 1rem;">Interpreting the charts:</strong> <br/>
                     <p><strong>Barchart:</strong> Each bar represents the normalized frequency of datazones linked to a
@@ -1223,7 +1265,7 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
                         shows the distribution for {compareTo}. </p>
                 </div>-->
 
-                <!-- Disclaimer 
+                <!-- Disclaimer
                 <div id="se-disclaimer" class="disclaimer-box">
                     <p style="margin: 0 0 1rem 0;"><strong>Correlation ≠ Causation:</strong> The scatter plots represent
                         modelled associations and should not be interpreted as direct causal relationships. </p>
@@ -1305,6 +1347,42 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
 
     .chart-hidden {
         opacity: 0;
+    }
+
+    .chart-badge-bottom-right {
+        position: absolute;
+        right: -10px;
+        bottom: 0px;
+        z-index: 3;
+        pointer-events: auto;
+        display: flex;
+        gap: 6px;
+    }
+
+    .map-info-badges {
+        gap: 3px;
+    }
+
+    .header-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+        margin-bottom: 2px;
+    }
+
+    /* Match co-benefit/local-authority pages: map badges aligned to bottom-right under the map */
+    .chart-badges.map-info-badges {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 6px;
+        pointer-events: auto;
+        opacity: 0.98;
+    }
+
+    /* Reserve space so bottom-right badges don't overlap axis labels */
+    .chart-shell.with-bottom-badges {
+        padding-bottom: 35px;
     }
 
     .header-row {

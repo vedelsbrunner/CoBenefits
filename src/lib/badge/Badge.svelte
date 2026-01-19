@@ -69,6 +69,7 @@
 
   $: effectiveType = mini ? 'mini' : type;
   $: badgeId = badge?.id != null ? String(badge.id) : String(badge?.label ?? '');
+  $: isComparisonAverage = badgeId === 'comparison-average';
 
   // ----- Analytics (PostHog) -----
   let hoverStartMs: number | null = null;
@@ -448,7 +449,7 @@
         {:else}
           {#if clickKind === 'link' && href}
             <a
-              class="badge {tone} {variant} {effectiveType === 'mini' ? 'mini' : ''} interactive"
+              class="badge {tone} {variant} {effectiveType === 'mini' ? 'mini' : ''} {isComparisonAverage ? 'avg-grey' : ''} interactive"
               href={href}
               target={external ? '_blank' : undefined}
               rel={external ? 'noopener noreferrer' : undefined}
@@ -469,7 +470,7 @@
             </a>
           {:else if clickKind === 'action' && onClick && 'action' in onClick}
             <span
-              class="badge {tone} {variant} {effectiveType === 'mini' ? 'mini' : ''} interactive"
+              class="badge {tone} {variant} {effectiveType === 'mini' ? 'mini' : ''} {isComparisonAverage ? 'avg-grey' : ''} interactive"
               role="button"
               tabindex="0"
               on:click={onClick.action}
@@ -491,7 +492,7 @@
             </span>
           {:else}
             <span
-              class="badge {tone} {variant} {effectiveType === 'mini' ? 'mini' : ''} interactive"
+              class="badge {tone} {variant} {effectiveType === 'mini' ? 'mini' : ''} {isComparisonAverage ? 'avg-grey' : ''} interactive"
               role="note"
               aria-label={badge.label}
               tabindex="0"
@@ -699,7 +700,7 @@
       {:else}
         {#if onClick && href}
           <a
-            class="badge {tone} {variant} {effectiveType === 'mini' ? 'mini' : ''} interactive"
+            class="badge {tone} {variant} {effectiveType === 'mini' ? 'mini' : ''} {isComparisonAverage ? 'avg-grey' : ''} interactive"
             href={href}
             target={external ? '_blank' : undefined}
             rel={external ? 'noopener noreferrer' : undefined}
@@ -720,7 +721,7 @@
           </a>
         {:else}
           <span
-            class="badge {tone} {variant} {effectiveType === 'mini' ? 'mini' : ''} interactive"
+            class="badge {tone} {variant} {effectiveType === 'mini' ? 'mini' : ''} {isComparisonAverage ? 'avg-grey' : ''} interactive"
             role="note"
             aria-label={badge.label}
             tabindex="0"
@@ -803,6 +804,15 @@
     --badge-bg: rgba(237, 108, 2, 0.14);
     --badge-bg-hover: rgba(237, 108, 2, 0.22);
     --badge-solid: rgb(237, 108, 2);
+  }
+
+  /* Average comparison badge: match the atlas "average" grey color */
+  .badge.avg-grey {
+    --badge-border: rgba(156, 156, 156, 0.95);
+    --badge-fg: rgb(156, 156, 156);
+    --badge-bg: rgba(156, 156, 156, 0.10);
+    --badge-bg-hover: rgba(156, 156, 156, 0.16);
+    --badge-solid: rgb(156, 156, 156);
   }
 
   /* Variants */
@@ -895,6 +905,8 @@
     max-width: 0;
     opacity: 0;
     overflow: hidden;
+    line-height: 1.2; /* prevent descenders (e.g. 'g') from being clipped */
+    padding-bottom: 1px; /* tiny extra room for glyph descenders */
     transition: max-width 320ms cubic-bezier(0.2, 0, 0, 1), opacity 200ms ease;
   }
 
