@@ -937,7 +937,7 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
             <p class="description">Explore how this nation will benefit from achieving Net Zero and learn about
                 the characteristics of its households.</p>
             <div class="header-badges" aria-label="Page information badges">
-                <Badge badge={BACKGROUND_READING_BADGE} onClick={{ href: '/methods', hint: 'Click for background reading' }} />
+                <Badge badge={BACKGROUND_READING_BADGE} onClick={{ href: '/methods', hint: { icon: 'info', text: 'Click for more information' } }} />
                 <Badge badge={OPEN_DATA_BADGE} />
                 <Badge
                     badge={RAW_DATA_AVAILABLE_BADGE}
@@ -947,31 +947,41 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
             </div>
 
                 <div class="radio-set">
-                    Compare {NATION} against:<br/>
+                    Compare {NATION} against:
 
                     {#if NATION !== 'UK'}
-                      <input type="radio" on:change={onChangeComparison} name="compare" value="UK" checked>
-                      <label class="nation-label">UK</label><br>
+                      <div class="radio-row">
+                        <input type="radio" on:change={onChangeComparison} name="compare" value="UK" checked>
+                        <label class="nation-label">UK</label>
+                      </div>
                     {/if}
 
                     {#if NATION !== 'England'}
-                      <input type="radio" on:change={onChangeComparison} name="compare" value="England">
-                      <label class="nation-label">England</label><br>
+                      <div class="radio-row">
+                        <input type="radio" on:change={onChangeComparison} name="compare" value="England">
+                        <label class="nation-label">England</label>
+                      </div>
                     {/if}
 
                     {#if NATION !== 'Wales'}
-                      <input type="radio" on:change={onChangeComparison} name="compare" value="Wales">
-                      <label class="nation-label">Wales</label><br>
+                      <div class="radio-row">
+                        <input type="radio" on:change={onChangeComparison} name="compare" value="Wales">
+                        <label class="nation-label">Wales</label>
+                      </div>
                     {/if}
 
                     {#if NATION !== 'Scotland'}
-                      <input type="radio" on:change={onChangeComparison} name="compare" value="Scotland">
-                      <label class="nation-label">Scotland</label><br>
+                      <div class="radio-row">
+                        <input type="radio" on:change={onChangeComparison} name="compare" value="Scotland">
+                        <label class="nation-label">Scotland</label>
+                      </div>
                     {/if}
 
                     {#if NATION !== 'NI'}
-                      <input type="radio" on:change={onChangeComparison} name="compare" value="NI">
-                      <label class="nation-label">Northern Ireland</label><br>
+                      <div class="radio-row">
+                        <input type="radio" on:change={onChangeComparison} name="compare" value="NI">
+                        <label class="nation-label">Northern Ireland</label>
+                      </div>
                     {/if}
                   </div>
         </div>
@@ -1371,17 +1381,21 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
         margin-bottom: 2px;
     }
 
-    /* Keep radio circles vertically aligned with labels (some fonts/baselines can drift). */
-    .radio-set input[type="radio"] {
-        vertical-align: middle;
-        margin: 0 6px 0 0;
-        transform: translateY(1px);
+    .radio-set {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
     }
 
-    .radio-set label {
+    .radio-row {
         display: inline-flex;
         align-items: center;
-        line-height: 1.2;
+        gap: 6px;
+    }
+
+    .radio-row input[type="radio"] {
+        margin: 0;
     }
 
     /* Match co-benefit/local-authority pages: map badges aligned to bottom-right under the map */

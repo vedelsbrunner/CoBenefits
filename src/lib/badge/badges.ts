@@ -2,7 +2,7 @@ import type { BadgeData } from './types';
 
 export const MAJOR_FINDING_BADGE: BadgeData = {
   label: 'Key Finding',
-  description: 'todo',
+  description: 'Key finding: this chart highlights one of the main takeaways on this page.',
   intent: 'CONFIRMATION',
   type: 'CONTEXT'
 };
@@ -39,21 +39,23 @@ export const CAN_FILTER_BADGE: BadgeData = {
 
 export const BACKGROUND_READING_BADGE: BadgeData = {
   label: 'Background Reading Available',
-  description: 'todo',
   intent: 'CONFIRMATION',
+  icon: 'Confirmation',
+  description: 'Read the Methods page for background and details on the data and modelling used in this atlas.',
   type: 'CONTEXT'
 };
 
 export const OPEN_DATA_BADGE: BadgeData = {
   label: 'Open Data',
-  description: 'todo',
+  description:
+    'Open data: the underlying dataset used for this atlas is openly available and can be downloaded and reused.',
   intent: 'CONFIRMATION',
   type: 'DATA'
 };
 
 export const RAW_DATA_AVAILABLE_BADGE: BadgeData = {
   label: 'Raw Data Available',
-  description: 'todo',
+  description: 'Raw data: download the page data as a CSV for your own analysis.',
   intent: 'CONFIRMATION',
   type: 'DATA'
 };
@@ -83,7 +85,6 @@ export const MODELLED_DATA_BADGE: BadgeData = {
     'These values are modelled estimates (not direct measurements). They are based on the underlying scenario modelling described in the Methods.'
 };
 
-// --- Page/chart badges (previously in `pageBadges.ts`) ---
 export const CORRELATION_NOT_CAUSATION_BADGE: BadgeData = {
   label: 'Correlation ≠ Causation',
   description:
@@ -100,7 +101,9 @@ export const AGGREGATED_DATA_BADGE: BadgeData = {
 
 export const BOX_PLOTS_BADGE: BadgeData = {
   label: 'Box plots',
-  description: 'todo',
+  icon: 'Info',
+	description:
+		'This box plot shows how the values are distributed. The box covers the middle half of the data, and the line inside the box is the median (the middle value). The whiskers show the typical range of values, and any dots beyond them are unusual outliers. Click to learn more.',
   intent: 'INFORMATION'
 };
 
@@ -117,3 +120,36 @@ export const TOTAL_VALUES_BADGE: BadgeData = {
   intent: 'INFORMATION',
   description: 'This chart uses total values. i.e. shows the total benefit/cost for all of the UK.'
 };
+
+export const SEF_BARCHART_BADGE: BadgeData = {
+  id: 'sef-barchart',
+  label: 'Barchart',
+  intent: 'INFORMATION',
+  description: 'Each bar represents the normalized frequency of datazones linked to a given social economic factor value.'
+};
+
+export type SEFChartBadgeKind = 'distribution' | 'scatterplot';
+
+const SEF_CHART_BADGE_CONFIG: Record<SEFChartBadgeKind, { id: string; label: string; describe: (area: string, compareTo: string) => string }> = {
+  distribution: {
+    id: 'sef-distribution',
+    label: 'Distribution',
+    describe: (area, compareTo) =>
+      `This distribution plot shows how datazones are spread across values of this factor. It compares ${area} with ${compareTo}.`
+  },
+  scatterplot: {
+    id: 'sef-scatterplot',
+    label: 'Scatterplot',
+    describe: (area, compareTo) => `Each dot represents a datazone inside ${area}. The cloud shows the distribution for ${compareTo}.`
+  }
+};
+
+export function makeSEFChartBadge(kind: SEFChartBadgeKind, areaName: string, compareTo: string): BadgeData {
+  const cfg = SEF_CHART_BADGE_CONFIG[kind];
+  return {
+    id: cfg.id,
+    label: cfg.label,
+    intent: 'INFORMATION',
+    description: cfg.describe(areaName, compareTo)
+  };
+}

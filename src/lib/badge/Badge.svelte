@@ -220,7 +220,7 @@
     if (hint && typeof hint === 'object') {
       const maybe = hint as any;
       const text = typeof maybe.text === 'string' ? maybe.text.trim() : '';
-      const icon: BadgeHintIcon | null = maybe.icon === 'download' ? 'download' : null;
+      const icon: BadgeHintIcon | null = maybe.icon === 'download' ? 'download' : maybe.icon === 'info' ? 'info' : null;
       return text ? { text, icon } : null;
     }
     return null;
@@ -533,6 +533,12 @@
                   d="M12 3a1 1 0 0 1 1 1v9.59l2.3-2.3 1.4 1.42L12 18.41l-4.7-4.7 1.4-1.42 2.3 2.3V4a1 1 0 0 1 1-1Zm-7 16h14v2H5v-2Z"
                   fill="currentColor"
                 />
+              </svg>
+            {:else if clickHintIcon === 'info'}
+              <svg class="tip-hint-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Z" fill="currentColor" opacity="0.28" />
+                <path d="M12 7.6a1.1 1.1 0 1 0 0-2.2 1.1 1.1 0 0 0 0 2.2Z" fill="currentColor" />
+                <path d="M11 10h2v8h-2v-8Z" fill="currentColor" />
               </svg>
             {/if}
             <span>{clickHintText}</span>

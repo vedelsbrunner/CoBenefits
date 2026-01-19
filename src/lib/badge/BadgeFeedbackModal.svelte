@@ -138,7 +138,7 @@
   <div class="modal" role="dialog" aria-modal="false" aria-label="Badge feedback questionnaire">
       <div class="header">
         <div class="header-top">
-          <div class="title">You interacted with these badges</div>
+          <div class="title">We noticed, that you interacted with some badges: </div>
           <button class="close" type="button" aria-label="Close" on:click={() => close('dismiss')}>×</button>
         </div>
 
@@ -238,7 +238,7 @@
     position: fixed;
     right: 16px;
     bottom: 16px;
-    width: min(420px, calc(100vw - 32px));
+    width: min(480px, calc(100vw - 32px));
     max-height: calc(100vh - 32px);
     background: #ffffff;
     border-radius: 12px;

@@ -677,7 +677,7 @@
                 </div>
 
                 <div class="header-badges">
-                    <Badge badge={BACKGROUND_READING_BADGE} onClick={{ href: '/methods', hint: 'Click for background reading' }} />
+                    <Badge badge={BACKGROUND_READING_BADGE} onClick={{ href: '/methods', hint: { icon: 'info', text: 'Click for more information' } }} />
                     <Badge badge={OPEN_DATA_BADGE} />
                     <Badge badge={RAW_DATA_AVAILABLE_BADGE} onClick={{ action: exportData, hint: { icon: 'download', text: 'Click to download the data' } }} />
                     <Badge badge={MODELLED_DATA_BADGE} />
@@ -983,7 +983,12 @@
                                 </div>
                                 {#if SEF_CATEGORICAL.includes(sef.id)}
                                     <div class="chart-badges" aria-label="Chart badges">
-                                        <Badge badge={BOX_PLOTS_BADGE} variant="outlined" type="mini" />
+                                        <Badge
+                                          badge={BOX_PLOTS_BADGE}
+                                          variant="outlined"
+                                          type="mini"
+                                          onClick={{ href: 'https://visualizationcheatsheets.github.io/boxplot.html', external: true, hint: 'Click for more information' }}
+                                        />
                                     </div>
                                 {:else}
                                     <div class="chart-badges" aria-label="Chart badges">

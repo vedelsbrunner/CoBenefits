@@ -2,7 +2,7 @@ import type { BadgeIconName } from './icons/BadgeIcon.svelte';
 
 export type BadgeIntent = 'CONFIRMATION' | 'INFORMATION' | 'WARNING';
 
-export type BadgeHintIcon = 'download';
+export type BadgeHintIcon = 'download' | 'info';
 
 export type BadgeHint =
   | string

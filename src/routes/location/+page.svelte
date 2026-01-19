@@ -40,9 +40,11 @@
         DISCRETE_SCALES_BADGE,
         INTERACTIVE_BADGE,
         INVISIBLE_SMALL_AREAS_BADGE,
+        makeSEFChartBadge,
         MODELLED_DATA_BADGE,
         OPEN_DATA_BADGE,
         RAW_DATA_AVAILABLE_BADGE,
+        SEF_BARCHART_BADGE,
         SMOOTHED_DATA_BADGE
     } from '$lib/badge/badges';
     // (Chart badges currently shown only on the co-benefit pages)
@@ -118,22 +120,7 @@
     // Search state
     let searchInput = "";
     let searchResults = [];
-    let scatterplotInfoBadge: any;
-
-    $: scatterplotInfoBadge = {
-        id: 'scatterplot-info',
-        label: 'Scatterplot',
-        intent: 'INFORMATION',
-        description: `Each dot represents a datazone inside ${LADToName[LAD] ?? LAD}. The cloud shows the distribution for ${compareTo}.`
-    };
-
-    const barchartInfoBadge = {
-        id: 'barchart-info',
-        label: 'Barchart',
-        intent: 'INFORMATION',
-        description:
-            'Each bar represents the normalized frequency of datazones linked to a given social economic factor value.'
-    };
+    $: areaNameForBadges = LADToName[LAD] ?? LAD;
 
     const DIST_PLOT_HEIGHT = Math.round(height / 1.6);
     const STANDARD_PLOT_HEIGHT = Math.round(height / 1.0);
@@ -1325,7 +1312,7 @@ console.log("selectedDatum", selectedDatum)
             <p class="description">Explore how this local authority will benefit from achieving Net Zero and learn about
                 the characteristics of its households.</p>
             <div class="header-badges" aria-label="Page information badges">
-                <Badge badge={BACKGROUND_READING_BADGE} onClick={{ href: '/methods', hint: 'Click for background reading' }} />
+                <Badge badge={BACKGROUND_READING_BADGE} onClick={{ href: '/methods', hint: { icon: 'info', text: 'Click for more information' } }} />
                 <Badge badge={OPEN_DATA_BADGE} />
                 <Badge
                     badge={RAW_DATA_AVAILABLE_BADGE}
@@ -1335,17 +1322,27 @@ console.log("selectedDatum", selectedDatum)
             </div>
 
             <div class="radio-set">
-                Compare this Local Authority District (LAD) against:<br/>
-                <input type="radio" on:change={onChangeComparison} name="compare" value="UK" checked>
-                <label class="nation-label" for="html">UK</label><br>
-                <input type="radio" on:change={onChangeComparison} name="compare" value="England">
-                <label class="nation-label" for="html">England</label><br>
-                <input type="radio" on:change={onChangeComparison} name="compare" value="Wales">
-                <label class="nation-label" for="html">Wales</label><br>
-                <input type="radio" on:change={onChangeComparison} name="compare" value="Scotland">
-                <label class="nation-label" for="javascript">Scotland</label>
-                <input type="radio" on:change={onChangeComparison} name="compare" value="NI">
-                <label class="nation-label" for="javascript">Northern Ireland</label>
+                Compare this Local Authority District (LAD) against:
+                <div class="radio-row">
+                    <input type="radio" on:change={onChangeComparison} name="compare" value="UK" checked>
+                    <label class="nation-label">UK</label>
+                </div>
+                <div class="radio-row">
+                    <input type="radio" on:change={onChangeComparison} name="compare" value="England">
+                    <label class="nation-label">England</label>
+                </div>
+                <div class="radio-row">
+                    <input type="radio" on:change={onChangeComparison} name="compare" value="Wales">
+                    <label class="nation-label">Wales</label>
+                </div>
+                <div class="radio-row">
+                    <input type="radio" on:change={onChangeComparison} name="compare" value="Scotland">
+                    <label class="nation-label">Scotland</label>
+                </div>
+                <div class="radio-row">
+                    <input type="radio" on:change={onChangeComparison} name="compare" value="NI">
+                    <label class="nation-label">Northern Ireland</label>
+                </div>
             </div>
         </div>
 
@@ -1777,7 +1774,11 @@ console.log("selectedDatum", selectedDatum)
                                     <div class="sef-card-with-badge">
                                         <div class="plot" bind:this={SEFPlotLAD[sef.id]}></div>
                                         <div class="sef-badge-bottom-right" aria-label="Chart information badges">
-                                            <Badge badge={barchartInfoBadge} variant="outlined" type="mini" />
+                                            {#if SEF_CATEGORICAL.includes(sef.id)}
+                                                <Badge badge={SEF_BARCHART_BADGE} variant="outlined" type="mini" />
+                                            {:else}
+                                                <Badge badge={makeSEFChartBadge('distribution', areaNameForBadges, compareTo)} variant="outlined" type="mini" />
+                                            {/if}
                                         </div>
                                     </div>
                                 </div>
@@ -1799,7 +1800,7 @@ console.log("selectedDatum", selectedDatum)
                                             <div class="plot" bind:this={SEFPlotPerCB[sef.id]}></div>
                                             <div class="sef-badge-bottom-right" aria-label="Chart information badges">
                                                 <Badge badge={CORRELATION_NOT_CAUSATION_BADGE} variant="outlined" type="mini" />
-                                                <Badge badge={scatterplotInfoBadge} variant="outlined" type="mini" />
+                                                <Badge badge={makeSEFChartBadge('scatterplot', areaNameForBadges, compareTo)} variant="outlined" type="mini" />
                                             </div>
                                         </div>
                                         <!-- chart badges intentionally disabled on this page -->
@@ -1877,16 +1878,21 @@ console.log("selectedDatum", selectedDatum)
     }
 
     /* Keep radio circles vertically aligned with labels (some fonts/baselines can drift). */
-    .radio-set input[type="radio"] {
-        vertical-align: middle;
-        margin: 0 6px 0 0;
-        transform: translateY(1px);
+    .radio-set {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
     }
 
-    .radio-set label {
+    .radio-row {
         display: inline-flex;
         align-items: center;
-        line-height: 1.2;
+        gap: 6px;
+    }
+
+    .radio-row input[type="radio"] {
+        margin: 0;
     }
 
     /* Reserve space so bottom-right badges don't overlap axis labels */
