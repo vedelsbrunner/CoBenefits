@@ -87,11 +87,11 @@ async function goToSection(id: string) {
       </div>
 
       <!-- EXPERIMENTAL -->
-      <div class="nav-item">
+      <!-- <div class="nav-item">
         <a href="{base}/playground" class="playground-pill" class:active={$page.url.pathname === `${base}/playground`}>
           Playground
         </a>
-      </div>
+      </div> -->
     </div>
 
     <div class="nav-right" style="gap: 1rem;">

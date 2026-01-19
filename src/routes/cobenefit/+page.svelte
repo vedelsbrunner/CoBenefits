@@ -677,7 +677,7 @@
                 </div>
 
                 <div class="header-badges">
-                    <Badge badge={BACKGROUND_READING_BADGE} />
+                    <Badge badge={BACKGROUND_READING_BADGE} onClick={{ href: '/methods', hint: 'Click for background reading' }} />
                     <Badge badge={OPEN_DATA_BADGE} />
                     <Badge badge={RAW_DATA_AVAILABLE_BADGE} onClick={{ action: exportData, hint: { icon: 'download', text: 'Click to download the data' } }} />
                     <Badge badge={MODELLED_DATA_BADGE} />

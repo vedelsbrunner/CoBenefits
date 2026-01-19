@@ -118,6 +118,7 @@
     // Search state
     let searchInput = "";
     let searchResults = [];
+    let scatterplotInfoBadge: any;
 
     $: scatterplotInfoBadge = {
         id: 'scatterplot-info',
@@ -1321,7 +1322,7 @@ console.log("selectedDatum", selectedDatum)
             <p class="description">Explore how this local authority will benefit from achieving Net Zero and learn about
                 the characteristics of its households.</p>
             <div class="header-badges" aria-label="Page information badges">
-                <Badge badge={BACKGROUND_READING_BADGE} />
+                <Badge badge={BACKGROUND_READING_BADGE} onClick={{ href: '/methods', hint: 'Click for background reading' }} />
                 <Badge badge={OPEN_DATA_BADGE} />
                 <Badge
                     badge={RAW_DATA_AVAILABLE_BADGE}
@@ -1869,6 +1870,19 @@ console.log("selectedDatum", selectedDatum)
         gap: 6px;
         margin-top: 8px;
         margin-bottom: 2px;
+    }
+
+    /* Keep radio circles vertically aligned with labels (some fonts/baselines can drift). */
+    .radio-set input[type="radio"] {
+        vertical-align: middle;
+        margin: 0 6px 0 0;
+        transform: translateY(1px);
+    }
+
+    .radio-set label {
+        display: inline-flex;
+        align-items: center;
+        line-height: 1.2;
     }
 
     /* Reserve space so bottom-right badges don't overlap axis labels */
