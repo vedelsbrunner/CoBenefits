@@ -2,7 +2,7 @@ import type { BadgeData } from './types';
 
 export const MAJOR_FINDING_BADGE: BadgeData = {
   label: 'Key Finding',
-  description: 'Key finding: this chart highlights one of the main takeaways on this page.',
+  description: 'This chart highlights the main takeaways on this page.',
   icon: 'badge-check',
   intent: 'CONFIRMATION',
   type: 'CONTEXT'
