@@ -1,5 +1,5 @@
 <script lang="ts">
-  export type BadgeIconName = 'Confirmation' | 'Warning' | 'Info' | 'Interactive';
+  export type BadgeIconName = 'Confirmation' | 'Warning' | 'Info' | 'Interactive' | 'badge-check';
   export let name: BadgeIconName;
   export let size: number = 0;
   export let bg: string | null = null;
@@ -56,6 +56,29 @@
       <path d="m6 12-1.9 2" />
       <path d="M7.2 2.2 8 5.1" />
       <path d="M9.037 9.69a.498.498 0 0 1 .653-.653l11 4.5a.5.5 0 0 1-.074.949l-4.349 1.041a1 1 0 0 0-.74.739l-1.04 4.35a.5.5 0 0 1-.95.074z" />
+    </g>
+  </svg>
+{:else if name === 'badge-check'}
+  <!-- lucide badge-check -->
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    aria-hidden="true"
+    stroke={fg ?? 'currentColor'}
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+    <!-- scale down the glyph slightly so it reads better inside small badges -->
+    <g transform="translate(12 12) scale(0.86) translate(-12 -12)">
+      <path
+        d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"
+        fill={bg ?? 'none'}
+        opacity={bgOpacity}
+      />
+      <path d="m9 12 2 2 4-4" />
     </g>
   </svg>
 {:else}

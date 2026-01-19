@@ -3,6 +3,7 @@ import type { BadgeData } from './types';
 export const MAJOR_FINDING_BADGE: BadgeData = {
   label: 'Key Finding',
   description: 'Key finding: this chart highlights one of the main takeaways on this page.',
+  icon: 'badge-check',
   intent: 'CONFIRMATION',
   type: 'CONTEXT'
 };
@@ -79,7 +80,7 @@ export const PER_CAPITA_MAP_BADGE: BadgeData = {
 
 export const MODELLED_DATA_BADGE: BadgeData = {
   id: 'modelled-data',
-  label: 'Contains modelled data',
+  label: 'Contains Modelled Data',
   intent: 'INFORMATION',
   description:
     'These values are modelled estimates (not direct measurements). They are based on the underlying scenario modelling described in the Methods.'
