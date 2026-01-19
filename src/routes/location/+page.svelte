@@ -168,28 +168,31 @@
         totalValuePerCapitaMax = await getTableData(getTopSelectedLADs({limit: 1, sortBy: "per_capita"}));
         totalValuePerCapitaMax = totalValuePerCapitaMax[0].value_per_capita;
 
-        const LADEngPath = `/LAD/Eng_Wales_LSOA_LADs.csv`
-        const LADNIPath = `/LAD/NI_DZ_LAD.csv`
-        const LADScotlandPath = `/LAD/Scotland_DZ_LA.csv`
+        const LADEngPath = `${base}/LAD/Eng_Wales_LSOA_LADs.csv`;
+        const LADNIPath = `${base}/LAD/NI_DZ_LAD.csv`;
+        const LADScotlandPath = `${base}/LAD/Scotland_DZ_LA.csv`;
 
-        await csv(LADEngPath).then(data => {
-            for (let row of data) {
-                LADToName[row.LAD22CD] = row.LAD22NM
+        try {
+            const eng = await csv(LADEngPath);
+            eng.forEach((row: any) => {
+                LADToName[row.LAD22CD] = row.LAD22NM;
                 LSOACodeToName[row.LSOA21CD] = row.LSOA21NM;
-            }
-        })
-        await csv(LADNIPath).then(data => {
-            for (let row of data) {
-                LADToName[row.LGD2014_code] = row.LGD2014_name
+            });
+
+            const ni = await csv(LADNIPath);
+            ni.forEach((row: any) => {
+                LADToName[row.LGD2014_code] = row.LGD2014_name;
                 LSOACodeToName[row.DZ2021_code] = row.DZ2021_name;
-            }
-        })
-        await csv(LADScotlandPath).then(data => {
-            for (let row of data) {
-                LADToName[row.LA_Code] = row.LA_Name
+            });
+
+            const sco = await csv(LADScotlandPath);
+            sco.forEach((row: any) => {
+                LADToName[row.LA_Code] = row.LA_Name;
                 LSOACodeToName[row.DZ2011_Code] = row.DZ2011_Name;
-            }
-        })
+            });
+        } catch (e) {
+            console.error('Failed to load LAD/LSOA name CSVs', e);
+        }
 
         dataLoaded = true;
     }
