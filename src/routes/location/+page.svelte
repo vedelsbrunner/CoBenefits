@@ -24,7 +24,8 @@
         // removeSpinner,
         // addSpinner,
         SEF_SCALE,
-        getIconFromCobenef, COBENEFS_SCALE2,
+        getIconFromCobenef,
+        COBENEFS_SCALE2,
         SE_FACTORS, SEF_LEVEL_LABELS, convertToCSV, downloadCSV
     } from "../../globals";
     import {getRandomSubarray} from "$lib/utils";
@@ -103,12 +104,12 @@
     let oneLADData;
     let oneLADAllCbs;
 
-    let totalValue: number;
-    let totalValuePerCapita: number;
-    let totalValueMax: number;
-    let totalValuePerCapitaMax: number;
-    let totalValueMean: number;
-    let totalValuePerCapitaMean: number;
+    let totalValue: number | null = null;
+    let totalValuePerCapita: number | null = null;
+    let totalValueMax: number | null = null;
+    let totalValuePerCapitaMax: number | null = null;
+    let totalValueMean: number | null = null;
+    let totalValuePerCapitaMean: number | null = null;
 
 
     let dataLoaded = false;
@@ -146,14 +147,18 @@
         oneLADAllCbs = await getTableData(getAllCBForOneLAD(LAD));
 
 
-        totalValue = (d3.sum(oneLADData, d => d.total) / 1000).toFixed(3);
-        totalValueMax = d3.max(totalCBAllLAD, d => d.val) / 1000;
+        // Total co-benefits in £ billions (rounded for display)
+        const totalBillions = d3.sum(oneLADData, (d) => d.total) / 1000;
+        totalValue = Number(totalBillions.toFixed(3));
+
+        totalValueMax = (d3.max(totalCBAllLAD, (d) => d.val) ?? 0) / 1000;
 
         // This is an approximation
-        totalValuePerCapita = (d3.mean(oneLADData, d => d.totalPerCapita) * 1000000).toFixed(1);
+        const perCapita = (d3.mean(oneLADData, (d) => d.totalPerCapita) ?? 0) * 1000000;
+        totalValuePerCapita = Number(perCapita.toFixed(1));
 
         totalValuePerCapitaMax = await getTableData(getTopSelectedLADs({limit: 1, sortBy: "per_capita"}));
-        totalValuePerCapitaMax = totalValuePerCapitaMax[0].value_per_capita;
+        totalValuePerCapitaMax = Number(totalValuePerCapitaMax?.[0]?.value_per_capita ?? 0);
 
         const LADEngPath = `${base}/LAD/Eng_Wales_LSOA_LADs.csv`;
         const LADNIPath = `${base}/LAD/NI_DZ_LAD.csv`;
@@ -187,8 +192,8 @@
 
     $: {
         if (totalCBAllLAD) {
-            totalValueMean = d3.mean(totalCBAllLAD.map(d => d.val)) / 1000;
-            totalValuePerCapitaMean = d3.mean(totalCBAllLAD.map(d => d.value_per_capita)) * 100000;
+            totalValueMean = (d3.mean(totalCBAllLAD.map(d => d.val)) ?? 0) / 1000;
+            totalValuePerCapitaMean = (d3.mean(totalCBAllLAD.map(d => d.value_per_capita)) ?? 0) * 100000;
         }
     }
 
@@ -267,14 +272,17 @@
         window.removeEventListener('scroll', handleScroll); // remove listener
     })
 
-    function makeLADBarSVG(value, max, fill = "black") {
+    function makeLADBarSVG(value: number, max: number, fill = "black") {
+        const v = Number.isFinite(value) ? value : 0;
+        const m = Number.isFinite(max) ? max : 0;
+        const safeMax = m > 0 ? m : Math.max(v, 1);
         const plot = Plot.plot({
             width: 80,
             height: 20,
             margin: 0,
-            x: {domain: [0, max], axis: null},
+            x: {domain: [0, safeMax], axis: null},
             marks: [
-                Plot.barX([value], {
+                Plot.barX([v], {
                     x: d => d,
                     y: 0,
                     fill: fill
@@ -1281,7 +1289,6 @@ console.log("selectedDatum", selectedDatum)
 <NavigationBar></NavigationBar>
 <!-- <StickyNav sectionRefs={sectionRefs}></StickyNav> -->
 
-
 <div class="page-container" bind:this={element}>
 
     {#if scrolledPastHeader}
@@ -1289,7 +1296,7 @@ console.log("selectedDatum", selectedDatum)
             <div class="mini-header-content">
           <span class="mini-header-text">
             {LADToName[LAD] ?? 'Loading…'}
-              {#if totalValue}
+              {#if dataLoaded && totalValue !== null}
             <span class="mini-header-value">(Total: £{totalValue.toLocaleString()} billion)</span>
             {/if}
               >> {formatLabel(currentSection)}</span>
@@ -1349,58 +1356,72 @@ console.log("selectedDatum", selectedDatum)
 
         <div>
             <!--{d3.sum(totalCBAllZones.map(d => d.total))}-->
-            {#if totalValue}
-
+            <div class="waffle-stats-shell" aria-busy={!dataLoaded} aria-live="polite">
                 <div class="waffle-stats">
                     <div class="waffle-stat">
                         <div class="waffle-value">
-                            {@html
-                                makeLADBarSVG(totalValue, totalValueMax, VIS_COLOR)
-                            }
-                            <span class="waffle-big">£{totalValue.toLocaleString()}</span>
+                            {#if dataLoaded && totalValue !== null}
+                                {@html makeLADBarSVG(totalValue, totalValueMax ?? 0, VIS_COLOR)}
+                            {/if}
+                            <span class="waffle-big">
+                                {dataLoaded && totalValue !== null ? `£${totalValue.toLocaleString()}` : "—"}
+                            </span>
                             <span class="small">billion</span>
                         </div>
 
                         <div class="waffle-value">
-                            {@html
-                                makeLADBarSVG(totalValueMean, totalValueMax, AVERAGE_COLOR)
-                            }
+                            {#if dataLoaded && totalValueMean !== null}
+                                {@html makeLADBarSVG(totalValueMean, totalValueMax ?? 0, AVERAGE_COLOR)}
+                            {/if}
 
-                            {#if totalValue > 0}
-                                <span class="waffle-caption">Local area benefits</span>
-                            {:else}
-                                <span class="waffle-caption">Local area costs</span>
+                            {#if dataLoaded && totalValue !== null}
+                                {#if totalValue > 0}
+                                    <span class="waffle-caption">Local area benefits</span>
+                                {:else}
+                                    <span class="waffle-caption">Local area costs</span>
+                                {/if}
                             {/if}
                         </div>
                     </div>
+
                     <div class="waffle-stat">
                         <div class="waffle-value">
-                            {@html
-                                makeLADBarSVG(totalValuePerCapita, totalValuePerCapitaMax, VIS_COLOR)
-                            }
-                            <span class="waffle-big">£{totalValuePerCapita.toLocaleString()}</span>
+                            {#if dataLoaded && totalValuePerCapita !== null}
+                                {@html makeLADBarSVG(totalValuePerCapita, totalValuePerCapitaMax ?? 0, VIS_COLOR)}
+                            {/if}
+                            <span class="waffle-big">
+                                {dataLoaded && totalValuePerCapita !== null ? `£${totalValuePerCapita.toLocaleString()}` : "—"}
+                            </span>
                             <span class="small"></span>
                         </div>
 
                         <div class="waffle-value">
+                            {#if dataLoaded && totalValuePerCapitaMean !== null}
+                                {@html makeLADBarSVG(totalValuePerCapitaMean, totalValuePerCapitaMax ?? 0, AVERAGE_COLOR)}
+                            {/if}
 
-                            {@html
-                                makeLADBarSVG(totalValuePerCapitaMean, totalValuePerCapitaMax, AVERAGE_COLOR)
-                            }
-
-                            {#if totalValue > 0}
-                                <span class="waffle-caption">Per capita benefits</span>
-                            {:else}
-                                <span class="waffle-caption">Per capita costs</span>
+                            {#if dataLoaded && totalValue !== null}
+                                {#if totalValue > 0}
+                                    <span class="waffle-caption">Per capita benefits</span>
+                                {:else}
+                                    <span class="waffle-caption">Per capita costs</span>
+                                {/if}
                             {/if}
                         </div>
-                        <div class="waffle-caption">
-                            <Badge badge={COMPARISON_AVERAGE_BADGE} variant="filled" />
-                        </div>
 
+                        {#if dataLoaded}
+                            <div class="waffle-caption">
+                                <Badge badge={COMPARISON_AVERAGE_BADGE} variant="filled" />
+                            </div>
+                        {/if}
                     </div>
                 </div>
-            {/if}
+                {#if !dataLoaded}
+                    <div class="waffle-stats-loading" aria-hidden="true">
+                        <ChartSkeleton height={140} radius={12}/>
+                    </div>
+                {/if}
+            </div>
 
 
         </div>
@@ -1482,10 +1503,12 @@ console.log("selectedDatum", selectedDatum)
             <div class="component column">
                 <h3 class="component-title">Where is {LADToName[LAD]}?</h3>
                 <p class="description">{LADToName[LAD]} has been highlighted in dark grey on this UK map.</p>
-                <div id="map" bind:this={mapDiv}>
-                    <!--                    <div class="badge-container">-->
-                    <!--                        <img class="badge" src={zoomBadge} />-->
-                    <!--                    </div>-->
+                <div class="map-shell">
+                    <div id="map" bind:this={mapDiv}>
+                        <!--                    <div class="badge-container">-->
+                        <!--                        <img class="badge" src={zoomBadge} />-->
+                        <!--                    </div>-->
+                    </div>
                 </div>
                 <div class="chart-badges map-info-badges" aria-label="Map information badges">
                     <Badge badge={INTERACTIVE_BADGE} variant="filled" />
@@ -1981,6 +2004,12 @@ console.log("selectedDatum", selectedDatum)
         /*flex: 1; !* take the remaining height *!*/
     }
 
+    .map-shell {
+        position: relative;
+        width: 100%;
+    }
+
+
     #map-lsoa {
         flex: 1;
         /*width: 100%;*/
@@ -2103,6 +2132,19 @@ console.log("selectedDatum", selectedDatum)
         display: flex;
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .waffle-stats-shell {
+        position: relative;
+        min-height: 140px;
+    }
+
+    .waffle-stats-loading {
+        position: absolute;
+        inset: 0px;
+        border-radius: 12px;
+        transform: translateX(-100px);
+        pointer-events: none;
     }
 
     .waffle-value {

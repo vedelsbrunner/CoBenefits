@@ -988,57 +988,73 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
 
 
         <div>
-            {#if totalValue}
+            <div class="waffle-stats-shell" aria-busy={!dataLoaded} aria-live="polite">
                 <div class="waffle-stats">
                     <div class="waffle-stat">
                         <div class="waffle-value">
-                            {@html
-                                makeLADBarSVG(totalValue, totalValueMax, VIS_COLOR)
-                            }
-                            <span class="waffle-big">£{totalValue.toLocaleString()}</span>
+                            {#if dataLoaded}
+                                {@html makeLADBarSVG(totalValue, totalValueMax, VIS_COLOR)}
+                            {/if}
+                            <span class="waffle-big">
+                                {dataLoaded ? `£${totalValue.toLocaleString()}` : "—"}
+                            </span>
                             <span class="small">billion</span>
                         </div>
 
                         <div class="waffle-value">
-                            {@html
-                                makeLADBarSVG(totalValueMean, totalValueMax, AVERAGE_COLOR)
-                            }
+                            {#if dataLoaded}
+                                {@html makeLADBarSVG(totalValueMean, totalValueMax, AVERAGE_COLOR)}
+                            {/if}
 
-                            {#if totalValue > 0}
-                                <span class="waffle-caption">Local area benefits</span>
-                            {:else}
-                                <span class="waffle-caption">Local area costs</span>
+                            {#if dataLoaded}
+                                {#if totalValue > 0}
+                                    <span class="waffle-caption">Local area benefits</span>
+                                {:else}
+                                    <span class="waffle-caption">Local area costs</span>
+                                {/if}
                             {/if}
                         </div>
                     </div>
+
                     <div class="waffle-stat">
                         <div class="waffle-value">
-                            {@html
-                                makeLADBarSVG(totalValuePerCapita, totalValuePerCapitaMax, VIS_COLOR)
-                            }
-                            <span class="waffle-big">£{totalValuePerCapita.toLocaleString()}</span>
+                            {#if dataLoaded}
+                                {@html makeLADBarSVG(totalValuePerCapita, totalValuePerCapitaMax, VIS_COLOR)}
+                            {/if}
+                            <span class="waffle-big">
+                                {dataLoaded ? `£${totalValuePerCapita.toLocaleString()}` : "—"}
+                            </span>
                             <span class="small"></span>
                         </div>
 
                         <div class="waffle-value">
+                            {#if dataLoaded}
+                                {@html makeLADBarSVG(totalValuePerCapitaMean, totalValuePerCapitaMax, AVERAGE_COLOR)}
+                            {/if}
 
-                            {@html
-                                makeLADBarSVG(totalValuePerCapitaMean, totalValuePerCapitaMax, AVERAGE_COLOR)
-                            }
-
-                            {#if totalValue > 0}
-                                <span class="waffle-caption">Per capita benefits</span>
-                            {:else}
-                                <span class="waffle-caption">Per capita costs</span>
+                            {#if dataLoaded}
+                                {#if totalValue > 0}
+                                    <span class="waffle-caption">Per capita benefits</span>
+                                {:else}
+                                    <span class="waffle-caption">Per capita costs</span>
+                                {/if}
                             {/if}
                         </div>
-                        <div class="waffle-caption">
-                            <Badge badge={COMPARISON_AVERAGE_BADGE} variant="filled" />
-                        </div>
 
+                        {#if dataLoaded}
+                            <div class="waffle-caption">
+                                <Badge badge={COMPARISON_AVERAGE_BADGE} variant="filled" />
+                            </div>
+                        {/if}
                     </div>
                 </div>
-            {/if}
+
+                {#if !dataLoaded}
+                    <div class="waffle-stats-loading" aria-hidden="true">
+                        <ChartSkeleton width="180px" height={180} radius={12}/>
+                    </div>
+                {/if}
+            </div>
         </div>
 
     </div>
@@ -1587,6 +1603,19 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
         display: flex;
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .waffle-stats-shell {
+        position: relative;
+        min-height: 180px;
+    }
+
+    .waffle-stats-loading {
+        position: absolute;
+        inset: 0px;
+        border-radius: 12px;
+        transform: translateX(-100px);
+        pointer-events: none;
     }
 
     .waffle-value {
