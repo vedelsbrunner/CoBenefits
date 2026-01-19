@@ -21,8 +21,8 @@
         COBENEFS_RANGE,
         COBENEFS,
         COBENEFS_SCALE,
-        removeSpinner,
-        addSpinner,
+        // removeSpinner,
+        // addSpinner,
         SEF_SCALE,
         getIconFromCobenef, COBENEFS_SCALE2,
         SE_FACTORS, SEF_LEVEL_LABELS, convertToCSV, downloadCSV
@@ -30,6 +30,7 @@
     import {getRandomSubarray} from "$lib/utils";
 
     import NavigationBar from "$lib/components/NavigationBar.svelte";
+    import ChartSkeleton from "$lib/components/ChartSkeleton.svelte";
     import Badge from '$lib/badge/Badge.svelte';
     // (Chart badges currently shown only on the co-benefit pages)
     import {
@@ -105,6 +106,10 @@
     let searchInput = "";
     let searchResults = [];
 
+    const DIST_PLOT_HEIGHT = Math.round(height / 1.6);
+    const STANDARD_PLOT_HEIGHT = Math.round(height / 1.0);
+    const TALL_PLOT_HEIGHT = Math.round(height);
+
     async function loadData() {
         totalCBAllZones = await getTableData(getTotalCBAllDatazones());
 
@@ -158,7 +163,6 @@
         })
 
         dataLoaded = true;
-        removeSpinner(element)
     }
 
 
@@ -169,14 +173,13 @@
         }
     }
 
-    loadData().then(() => {
-        // Needs to be initialised after data loading
+    async function initLSOAMapAfterLoad() {
+        if (!mapLSOADiv) return;
+        if (!oneLADData || !Array.isArray(oneLADData) || oneLADData.length === 0) return;
         mapLSOA = new MapUK(oneLADData, "LSOA", mapLSOADiv, "total", false, "Lookup_Value", false, null, 8);
-
         mapLSOA.initMap(true, false);
-        mapLSOA.setCenter(oneLADData[0].LAD)
-        // mapLSOA.setCenter(oneLADData[0].Lookup_Value)
-    });
+        mapLSOA.setCenter(oneLADData[0].LAD);
+    }
 
     let scrolledPastHeader = false;
     let currentSection = '';
@@ -226,9 +229,14 @@
     let mapLSOADiv: HTMLElement;
 
     onMount(() => {
-        addSpinner(element)
         map = new MapUK(LAD, "LAD", mapDiv, "val", true, "Lookup_value", false, null, 8);
         map.initMap(false);
+
+        // Start loading in the background (non-blocking).
+        void loadData().then(() => {
+            // Needs to be initialised after data loading
+            void initLSOAMapAfterLoad();
+        });
 
         window.addEventListener('scroll', handleScroll); // header scroll listener
 
@@ -1261,7 +1269,7 @@ console.log("selectedDatum", selectedDatum)
         <div class="mini-header">
             <div class="mini-header-content">
           <span class="mini-header-text">
-            {LADToName[LAD]}
+            {LADToName[LAD] ?? 'Loading…'}
               {#if totalValue}
             <span class="mini-header-value">(Total: £{totalValue.toLocaleString()} billion)</span>
             {/if}
@@ -1294,7 +1302,7 @@ console.log("selectedDatum", selectedDatum)
             </div>
 
             <div id="title-row">
-                <h1 class="page-title"> {LADToName[LAD]}</h1>
+                <h1 class="page-title"> {LADToName[LAD] ?? 'Loading…'}</h1>
 
             </div>
 
@@ -1421,14 +1429,24 @@ console.log("selectedDatum", selectedDatum)
                     received across all local
                     authorities in <span class="nation-label">{compareTo}</span> (grey).</p>
                 <br>
-                {@html renderDistributionPlot(totalCBAllZones, oneLADData)}
+                <div class="chart-shell" style="height: {DIST_PLOT_HEIGHT}px;">
+                    {#if !dataLoaded}
+                        <ChartSkeleton height={DIST_PLOT_HEIGHT}/>
+                    {:else}
+                        {@html renderDistributionPlot(totalCBAllZones, oneLADData)}
+                    {/if}
+                </div>
 
                 <h3 class="component-title">11 types of co-benefit values (vs. <span
                         class="nation-label">{compareTo}</span> Average)</h3>
                 <p class="description">Co-benefit values for {LADToName[LAD]} compared to average value of benefits
                     received across all local
                     authorities in <span class="nation-label">{compareTo}</span> (grey).</p>
-                <div class="plot" bind:this={plotPerCb}>
+                <div class="chart-shell" style="height: {TALL_PLOT_HEIGHT}px;">
+                    {#if !dataLoaded}
+                        <ChartSkeleton height={TALL_PLOT_HEIGHT}/>
+                    {/if}
+                    <div class="plot {dataLoaded ? '' : 'chart-hidden'}" bind:this={plotPerCb}></div>
                 </div>
             </div>
 
@@ -1507,7 +1525,12 @@ console.log("selectedDatum", selectedDatum)
                     </div>
                 </div>
 
-                <div class="plot side" bind:this={CBOverTimePLot}></div>
+                <div class="chart-shell" style="height: {TALL_PLOT_HEIGHT}px;">
+                    {#if !dataLoaded}
+                        <ChartSkeleton height={TALL_PLOT_HEIGHT}/>
+                    {/if}
+                    <div class="plot side {dataLoaded ? '' : 'chart-hidden'}" bind:this={CBOverTimePLot}></div>
+                </div>
 
 
                 <!-- <div class="row"> -->
@@ -1567,7 +1590,12 @@ console.log("selectedDatum", selectedDatum)
                     </div>
 
                 </div>
-                <div class="plot side" bind:this={CBOverTimePerCBPLot}></div>
+                <div class="chart-shell" style="height: {TALL_PLOT_HEIGHT}px;">
+                    {#if !dataLoaded}
+                        <ChartSkeleton height={TALL_PLOT_HEIGHT}/>
+                    {/if}
+                    <div class="plot side {dataLoaded ? '' : 'chart-hidden'}" bind:this={CBOverTimePerCBPLot}></div>
+                </div>
                 <!-- Disclaimer -->
                 <div id="main-disclaimer" class="disclaimer-box">
                     <p style="margin: 0;"><strong>Some areas too small:</strong> Due to the nature of the
@@ -1625,7 +1653,11 @@ console.log("selectedDatum", selectedDatum)
                 <h3 class="component-title">LSOA Map</h3>
 
                 <p class="description">This map shows the total co-benefit values (£ millions) for each LSOA of {LADToName[LAD]}</p>
-                <div id="map-lsoa" bind:this={mapLSOADiv}>
+                <div class="chart-shell" style="min-height: 520px;">
+                    {#if !dataLoaded}
+                        <ChartSkeleton height={520}/>
+                    {/if}
+                    <div id="map-lsoa" class="{dataLoaded ? '' : 'chart-hidden'}" bind:this={mapLSOADiv}></div>
                 </div>
             </div>
 
@@ -1748,6 +1780,10 @@ console.log("selectedDatum", selectedDatum)
     .chart-shell {
         position: relative;
         width: 100%;
+    }
+
+    .chart-hidden {
+        opacity: 0;
     }
 
     .chart-badges {

@@ -21,8 +21,8 @@
         COBENEFS_RANGE,
         COBENEFS,
         COBENEFS_SCALE,
-        removeSpinner,
-        addSpinner,
+        // removeSpinner,
+        // addSpinner,
         SEF_SCALE,
         getIconFromCobenef, COBENEFS_SCALE2,
         SE_FACTORS, SEF_LEVEL_LABELS, type Nation
@@ -30,6 +30,7 @@
     import {getRandomSubarray} from "$lib/utils";
 
     import NavigationBar from "$lib/components/NavigationBar.svelte";
+    import ChartSkeleton from "$lib/components/ChartSkeleton.svelte";
     import {
         getAllCBAllDatazones, getAllCBForOneLAD, getAllCBForOneNation,
         getAverageCBGroupedByLAD,
@@ -88,6 +89,10 @@
 
     let dataLoaded = false;
 
+    const DIST_PLOT_HEIGHT = Math.round(height / 1.6);
+    const PER_CB_PLOT_HEIGHT = Math.round(height / 1.0);
+    const TEMP_PLOT_HEIGHT = Math.round(height * 1.5);
+
     async function loadData() {
         totalCBAllZones = await getTableData(getTotalCBAllDatazones());
         allCBsAllZones = await getTableData(getAllCBAllDatazones());
@@ -118,7 +123,6 @@
         totalValuePerCapitaMax = totalValuePerCapitaMax[0].value_per_capita;
 
         dataLoaded = true;
-        removeSpinner(element)
     }
 
     $: {
@@ -127,11 +131,6 @@
             totalValuePerCapitaMean = d3.mean(totalCBAllLAD.map(d => d.value_per_capita)) * 100000;
         }
     }
-
-    loadData().then(() => {
-        map = new MapUK(oneNationData, "LSOA", mapDiv, "total", false, "Lookup_Value", false);
-        map.initMap();
-    });
 
     let scrolledPastHeader = false;
     let currentSection = '';
@@ -175,9 +174,13 @@
     let mapDiv: HTMLElement;
 
     onMount(() => {
-        addSpinner(element)
-
-
+        // Start loading in the background (non-blocking).
+        void loadData().then(() => {
+            if (mapDiv && oneNationData) {
+                map = new MapUK(oneNationData, "LSOA", mapDiv, "total", false, "Lookup_Value", false);
+                map.initMap();
+            }
+        });
 
         window.addEventListener('scroll', handleScroll); // header scroll listener
 
@@ -1021,14 +1024,24 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
                     received across all local
                     authorities in <span class="nation-label">{compareTo}</span> (grey).</p>
                 <br>
-                {@html renderDistributionPlot(totalCBAllZones, oneNationData) }
+                <div class="chart-shell" style="height: {DIST_PLOT_HEIGHT}px;">
+                    {#if !dataLoaded}
+                        <ChartSkeleton height={DIST_PLOT_HEIGHT}/>
+                    {:else}
+                        {@html renderDistributionPlot(totalCBAllZones, oneNationData) }
+                    {/if}
+                </div>
 
                 <h3 class="component-title">11 types of co-benefit values (vs. <span
                         class="nation-label">{compareTo}</span> Average)</h3>
                 <p class="description">Total co-benefit values for {NATION} compared to total benefits/costs
                     received across all local
                     authorities in <span class="nation-label">{compareTo}</span> (grey).</p>
-                <div class="plot" bind:this={plotPerCb}>
+                <div class="chart-shell" style="height: {PER_CB_PLOT_HEIGHT}px;">
+                    {#if !dataLoaded}
+                        <ChartSkeleton height={PER_CB_PLOT_HEIGHT}/>
+                    {/if}
+                    <div class="plot {dataLoaded ? '' : 'chart-hidden'}" bind:this={plotPerCb}></div>
                 </div>
             </div>
 
@@ -1036,7 +1049,11 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
                 <h3 class="component-title">Total co-benefits across {NATION}</h3>
                 <p class="description">Click a region to visit the Local Authority Report Page</p>
                 <p class="description">*Scroll for zooming in and out</p>
-                <div id="map" bind:this={mapDiv}>
+                <div class="chart-shell" style="height: 650px;">
+                    {#if !dataLoaded}
+                        <ChartSkeleton height={650}/>
+                    {/if}
+                    <div id="map" class="{dataLoaded ? '' : 'chart-hidden'}" bind:this={mapDiv}></div>
                 </div>
             </div>
         </div>
@@ -1071,7 +1088,12 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
                     </div>
                 </div>
 
-                <div class="plot side" bind:this={CBOverTimePLot}></div>
+                <div class="chart-shell" style="height: {TEMP_PLOT_HEIGHT}px;">
+                    {#if !dataLoaded}
+                        <ChartSkeleton height={TEMP_PLOT_HEIGHT}/>
+                    {/if}
+                    <div class="plot side {dataLoaded ? '' : 'chart-hidden'}" bind:this={CBOverTimePLot}></div>
+                </div>
 
 
                 <!-- <div class="row"> -->
@@ -1149,7 +1171,12 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
                     </div>
 
                 </div>
-                <div class="plot side" bind:this={CBOverTimePerCBPLot}></div>
+                <div class="chart-shell" style="height: {PER_CB_PLOT_HEIGHT}px;">
+                    {#if !dataLoaded}
+                        <ChartSkeleton height={PER_CB_PLOT_HEIGHT}/>
+                    {/if}
+                    <div class="plot side {dataLoaded ? '' : 'chart-hidden'}" bind:this={CBOverTimePerCBPLot}></div>
+                </div>
                 <!-- Disclaimer -->
                 <div id="main-disclaimer" class="disclaimer-box">
                     <p style="margin: 0;"><strong>Some areas too small:</strong> Due to the nature of the
@@ -1271,6 +1298,15 @@ CBOverTimePerCBPLot?.append(plotPerCB); }
 <Footer></Footer>
 
 <style>
+    .chart-shell {
+        position: relative;
+        width: 100%;
+    }
+
+    .chart-hidden {
+        opacity: 0;
+    }
+
     .header-row {
         display: flex;
         flex-direction: row;
