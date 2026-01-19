@@ -34,7 +34,10 @@
     import Badge from '$lib/badge/Badge.svelte';
     import {
         BACKGROUND_READING_BADGE,
+        CAN_FILTER_BADGE,
         COMPARISON_AVERAGE_BADGE,
+        CORRELATION_NOT_CAUSATION_BADGE,
+        DISCRETE_SCALES_BADGE,
         INTERACTIVE_BADGE,
         INVISIBLE_SMALL_AREAS_BADGE,
         MODELLED_DATA_BADGE,
@@ -115,6 +118,21 @@
     // Search state
     let searchInput = "";
     let searchResults = [];
+
+    $: scatterplotInfoBadge = {
+        id: 'scatterplot-info',
+        label: 'Scatterplot',
+        intent: 'INFORMATION',
+        description: `Each dot represents a datazone inside ${LADToName[LAD] ?? LAD}. The cloud shows the distribution for ${compareTo}.`
+    };
+
+    const barchartInfoBadge = {
+        id: 'barchart-info',
+        label: 'Barchart',
+        intent: 'INFORMATION',
+        description:
+            'Each bar represents the normalized frequency of datazones linked to a given social economic factor value.'
+    };
 
     const DIST_PLOT_HEIGHT = Math.round(height / 1.6);
     const STANDARD_PLOT_HEIGHT = Math.round(height / 1.0);
@@ -1286,14 +1304,6 @@ console.log("selectedDatum", selectedDatum)
               >> {formatLabel(currentSection)}</span>
 
             </div>
-            <button
-
-                    type="button"
-                    class="data-btn-sticky"
-                    on:click={exportData}
-            >
-                Download Page Data
-            </button>
         </div>
     {/if}
 
@@ -1301,14 +1311,6 @@ console.log("selectedDatum", selectedDatum)
         <div>
             <div class="header-bar">
                 <p class="page-subtitle">Local Authority Report</p>
-                <button
-
-                        type="button"
-                        class="data-btn"
-                        on:click={exportData}
-                >
-                    Download Page Data
-                </button>
             </div>
 
             <div id="title-row">
@@ -1637,6 +1639,10 @@ console.log("selectedDatum", selectedDatum)
     </div>
 <div class="section" id="breakdown">
             <div id="vis-block">
+            <div class="chart-badges map-info-badges bottom-right" aria-label="Interaction badges">
+                <Badge badge={CAN_FILTER_BADGE} variant="filled" />
+                <Badge badge={INTERACTIVE_BADGE} variant="filled" />
+            </div>
             <div id="main-block">
                 <h3 class="section-title" style="align">What co-benefits would the LSOAs recieve?</h3>
                 <p class="description">The distribution plot below shows the predicted spread of benefits recieved or costs incurred by the LSOAs across {LADToName[LAD]}.
@@ -1729,13 +1735,9 @@ console.log("selectedDatum", selectedDatum)
                         shows the distribution for {compareTo}. </p>
                 </div>
 
-                <!-- Disclaimer -->
-                <div id="se-disclaimer" class="disclaimer-box">
-                    <p style="margin: 0 0 1rem 0;"><strong>Correlation ≠ Causation:</strong> The scatter plots represent
-                        modelled associations and should not be interpreted as direct causal relationships. </p>
-                    <p style="margin: 0 0 1rem 0;"><strong>Discrete scales:</strong> The first set of socio-economic
-                        factors are using categorical values where the x-axis is non-linear: EPC, Tenure, Typology, Fuel
-                        type, Gas flag, Number of cars.</p>
+                <div class="chart-badges disclaimer-badges" aria-label="Disclaimers">
+                    <Badge badge={CORRELATION_NOT_CAUSATION_BADGE} variant="outlined" />
+                    <Badge badge={DISCRETE_SCALES_BADGE} variant="outlined" />
                 </div>
             </div>
 
@@ -1768,7 +1770,11 @@ console.log("selectedDatum", selectedDatum)
                                         distributed
                                         across
                                         different household social economic factors.</p>
-                                    <div class="plot" bind:this={SEFPlotLAD[sef.id]}>
+                                    <div class="sef-card-with-badge">
+                                        <div class="plot" bind:this={SEFPlotLAD[sef.id]}></div>
+                                        <div class="sef-badge-bottom-right" aria-label="Chart information badges">
+                                            <Badge badge={barchartInfoBadge} variant="outlined" type="mini" />
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1785,8 +1791,11 @@ console.log("selectedDatum", selectedDatum)
                                     </div>
 
                                     <div>
-                                        <div class="chart-shell">
-                                            <div class="plot" bind:this={SEFPlotPerCB[sef.id]}>
+                                        <div class="sef-card-with-badge">
+                                            <div class="plot" bind:this={SEFPlotPerCB[sef.id]}></div>
+                                            <div class="sef-badge-bottom-right" aria-label="Chart information badges">
+                                                <Badge badge={CORRELATION_NOT_CAUSATION_BADGE} variant="outlined" type="mini" />
+                                                <Badge badge={scatterplotInfoBadge} variant="outlined" type="mini" />
                                             </div>
                                         </div>
                                         <!-- chart badges intentionally disabled on this page -->
@@ -1824,10 +1833,17 @@ console.log("selectedDatum", selectedDatum)
         opacity: 0.98;
     }
 
+    .disclaimer-badges {
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        gap: 8px;
+    }
+
     .chart-badge-bottom-right {
         position: absolute;
-        right: -8px;
-        bottom: 0px;
+        right: 12px;
+        bottom: 12px;
         z-index: 3;
         pointer-events: auto;
         opacity: 0.98;
@@ -1837,6 +1853,14 @@ console.log("selectedDatum", selectedDatum)
 
     .map-info-badges {
         gap: 3px;
+    }
+
+    .chart-badges.bottom-right {
+        position: absolute;
+        right: 12px;
+        bottom: 12px;
+        margin-top: 0;
+        opacity: 0.98;
     }
 
     .header-badges {
@@ -1850,6 +1874,21 @@ console.log("selectedDatum", selectedDatum)
     /* Reserve space so bottom-right badges don't overlap axis labels */
     .chart-shell.with-bottom-badges {
         padding-bottom: 55px;
+    }
+
+    .sef-card-with-badge {
+        position: relative;
+        padding-bottom: 36px;
+    }
+
+    .sef-badge-bottom-right {
+        position: absolute;
+        right: -3px;
+        bottom: 0px;
+        z-index: 3;
+        pointer-events: auto;
+        display: flex;
+        gap: 0px;
     }
 
     .header-row {
@@ -1870,6 +1909,7 @@ console.log("selectedDatum", selectedDatum)
         padding-left: 1%;
         padding-right: 1%;
         padding-bottom: 1%;
+        position: relative;
     }
 
     #main-block {
@@ -1901,37 +1941,6 @@ console.log("selectedDatum", selectedDatum)
         margin-right: 2rem;
         align-self: flex-start;
         /* height: fit-content; */
-    }
-
-    .data-btn {
-        padding: 0rem 1rem;
-        margin-bottom: 0.2rem;
-        font-size: 0.9rem;
-        height: 30px;
-        border: none;
-        background-color: #007bff;
-        border-radius: 6px;
-        color: white;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-    }
-
-    .data-btn-sticky {
-        padding: 0rem 1rem;
-        margin-right: 5.3rem;
-        margin-top: 0.3rem;
-        font-size: 0.9rem;
-        height: 30px;
-        border: none;
-        background-color: #6280a0;
-        border-radius: 6px;
-        color: white;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-    }
-
-    .data-btn {
-        background-color: #6280a0;
     }
 
 

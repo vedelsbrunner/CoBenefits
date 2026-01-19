@@ -30,6 +30,13 @@ export const COMPARISON_AVERAGE_BADGE: BadgeData = {
     'Light grey indicates the comparison average (e.g., UK average, or the selected comparison option).'
 };
 
+export const CAN_FILTER_BADGE: BadgeData = {
+  id: 'can-filter',
+  label: 'Can Filter',
+  intent: 'CONFIRMATION',
+  description: 'This view can be filtered (e.g., by co-benefit type) and searched.'
+};
+
 export const BACKGROUND_READING_BADGE: BadgeData = {
   label: 'Background Reading Available',
   description: 'todo',
@@ -79,7 +86,8 @@ export const MODELLED_DATA_BADGE: BadgeData = {
 // --- Page/chart badges (previously in `pageBadges.ts`) ---
 export const CORRELATION_NOT_CAUSATION_BADGE: BadgeData = {
   label: 'Correlation ≠ Causation',
-  description: 'todo',
+  description:
+    'Correlation ≠ Causation: The scatter plots represent modelled associations and should not be interpreted as direct causal relationships.',
   intent: 'WARNING'
 };
 
@@ -98,7 +106,8 @@ export const BOX_PLOTS_BADGE: BadgeData = {
 
 export const DISCRETE_SCALES_BADGE: BadgeData = {
   label: 'Discrete scales',
-  description: 'The first set of socio-economic factors use categorical values where the x-axis is non-linear.',
+  description:
+    'Discrete scales: The first set of socio-economic factors are using categorical values where the x-axis is non-linear: EPC, Tenure, Typology, Fuel type, Gas flag, Number of cars.',
   intent: 'INFORMATION'
 };
 
