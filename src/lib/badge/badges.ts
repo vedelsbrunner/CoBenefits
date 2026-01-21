@@ -83,7 +83,7 @@ export const MODELLED_DATA_BADGE: BadgeData = {
   label: 'Contains Modelled Data',
   intent: 'INFORMATION',
   description:
-    'These values are modelled estimates (not direct measurements). They are based on the underlying scenario modelling described in the Methods.'
+    'These co-benefits values are modelled estimates. They are based on the underlying scenario guided by CCC\'s 7th Carbon Budget described in the Methods.'
 };
 
 export const CORRELATION_NOT_CAUSATION_BADGE: BadgeData = {
@@ -134,9 +134,10 @@ export type SEFChartBadgeKind = 'distribution' | 'scatterplot';
 const SEF_CHART_BADGE_CONFIG: Record<SEFChartBadgeKind, { id: string; label: string; describe: (area: string, compareTo: string) => string }> = {
   distribution: {
     id: 'sef-distribution',
-    label: 'Distribution',
+    label: 'Normalised distribution',
     describe: (area, compareTo) =>
-      `This distribution plot shows how datazones are spread across values of this factor. It compares ${area} with ${compareTo}.`
+      `Data zone distributions for ${area} is normalised for comparison against all data zone distributions across ${compareTo}.`
+      // `This distribution plot shows how datazones are spread across values of this factor. It compares ${area} with ${compareTo}.`
   },
   scatterplot: {
     id: 'sef-scatterplot',
