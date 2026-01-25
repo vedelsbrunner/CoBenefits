@@ -49,3 +49,7 @@ data/Final_hassle_fix.csv
 Archive/
 .ipynb_checkpoints
 .svelte-kit
+
+posthog/posthog.env
+posthog/.venv-posthog-export/
+posthog/exports/
