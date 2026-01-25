@@ -1,11 +1,12 @@
 import type { BadgeData } from './types';
 
 export const MAJOR_FINDING_BADGE: BadgeData = {
-  label: 'Key Finding',
-  description: 'This chart highlights the main takeaways on this page.',
-  icon: 'badge-check',
-  intent: 'CONFIRMATION',
-  type: 'CONTEXT'
+	label: 'Key Finding',
+	description:
+		'This chart contains what the authors have determined to be one of the most important findings on this page',
+	icon: 'badge-check',
+	intent: 'CONFIRMATION',
+	type: 'CONTEXT'
 };
 
 export const INVISIBLE_SMALL_AREAS_BADGE: BadgeData = {
