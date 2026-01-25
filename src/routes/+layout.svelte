@@ -11,6 +11,7 @@
     let showBanner = false;
     let showEmailInput = false;
     let userEmail = '';
+    let cookieConsent = null;
 
     const CONSENT_KEY = 'cookie-consent';
     const CONTACT_CONSENT_KEY = 'contact-consent';
@@ -18,6 +19,7 @@
 
     function acceptCookies() {
       localStorage.setItem(CONSENT_KEY, 'accepted');
+      cookieConsent = 'accepted';
       showBanner = false;
       showEmailInput = true;
       initPosthog();
@@ -26,6 +28,7 @@
     
     function rejectCookies() {
       localStorage.setItem(CONSENT_KEY, 'rejected');
+      cookieConsent = 'rejected';
       showBanner = false;
     }
         
@@ -33,6 +36,7 @@
       
       // Store consent and email
       localStorage.setItem(CONSENT_KEY, 'accepted');
+      cookieConsent = 'accepted';
       localStorage.setItem(CONTACT_CONSENT_KEY, 'true');
       localStorage.setItem(USER_EMAIL_KEY, userEmail);
       
@@ -76,6 +80,7 @@
         window.gtag('config', 'G-GGZ403XD90');
 
         const consent = localStorage.getItem(CONSENT_KEY);
+        cookieConsent = consent;
 
         // Only show banner if no consent choice has been made yet
         if (!consent) {
@@ -136,8 +141,9 @@
             </div>
     {/if}
 
-    
-  <BadgeFeedbackModal />
+  {#if cookieConsent === 'accepted'}
+    <BadgeFeedbackModal />
+  {/if}
   <slot/>
   
   <svelte:head>

@@ -35,6 +35,17 @@ const SESSION_ITEMS_KEY = 'badge-feedback:interacted';
 const SESSION_SHOWN_KEY = 'badge-feedback:shown';
 let promptLocked = false;
 
+const CONSENT_KEY = 'cookie-consent';
+
+function hasCookieConsent(): boolean {
+  if (!browser) return false;
+  try {
+    return localStorage.getItem(CONSENT_KEY) === 'accepted';
+  } catch {
+    return false;
+  }
+}
+
 function loadItems(): BadgeInteraction[] {
   if (!browser) return [];
   try {
@@ -132,6 +143,7 @@ export const badgeFeedback = writable<BadgeFeedbackState>({
 
 export function recordBadgeInteraction(interaction: BadgeInteraction, threshold = 3) {
   if (!browser) return;
+  if (!hasCookieConsent()) return;
   if (promptLocked) return;
   const normalized = String(interaction?.id ?? '').trim();
   if (!normalized) return;
